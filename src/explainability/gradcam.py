@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 # Grad-CAM Core
 # ─────────────────────────────────────────────
 
+
 class GradCAM:
     """
     Gradient-weighted Class Activation Map generator.
@@ -161,6 +162,7 @@ class GradCAM:
 # Visualization
 # ─────────────────────────────────────────────
 
+
 def overlay_gradcam(
     image: Union[np.ndarray, Image.Image],
     cam: np.ndarray,
@@ -240,15 +242,18 @@ def create_gradcam_figure(
     axes[2].imshow(overlay)
     axes[2].set_title(
         f"Overlay\nPrediction: {class_name}\nConfidence: {confidence:.1%}",
-        fontsize=12, fontweight="bold"
+        fontsize=12,
+        fontweight="bold",
     )
     axes[2].axis("off")
 
     # 4. Class probabilities
     if all_probs is not None and class_names is not None:
         y_pos = np.arange(len(class_names))
-        colors = ["#e74c3c" if i == np.argmax(all_probs) else "#3498db"
-                  for i in range(len(class_names))]
+        colors = [
+            "#e74c3c" if i == np.argmax(all_probs) else "#3498db"
+            for i in range(len(class_names))
+        ]
         bars = axes[3].barh(y_pos, all_probs * 100, color=colors, edgecolor="white")
         axes[3].set_yticks(y_pos)
         axes[3].set_yticklabels(class_names, fontsize=9)
@@ -260,13 +265,19 @@ def create_gradcam_figure(
         for bar, prob in zip(bars, all_probs):
             if prob > 0.02:
                 axes[3].text(
-                    bar.get_width() + 0.5, bar.get_y() + bar.get_height() / 2,
-                    f"{prob:.1%}", va="center", ha="left", fontsize=8
+                    bar.get_width() + 0.5,
+                    bar.get_y() + bar.get_height() / 2,
+                    f"{prob:.1%}",
+                    va="center",
+                    ha="left",
+                    fontsize=8,
                 )
 
     plt.suptitle(
         f"Distracted Driver Detection — Grad-CAM Explainability",
-        fontsize=14, fontweight="bold", y=1.02
+        fontsize=14,
+        fontweight="bold",
+        y=1.02,
     )
     plt.tight_layout()
 
@@ -280,6 +291,7 @@ def create_gradcam_figure(
 # ─────────────────────────────────────────────
 # Inference + Grad-CAM Pipeline
 # ─────────────────────────────────────────────
+
 
 class ExplainablePredictor:
     """
@@ -305,7 +317,9 @@ class ExplainablePredictor:
         9: "Talking to Passenger",
     }
 
-    def __init__(self, model, device: Optional[torch.device] = None, image_size: int = 224):
+    def __init__(
+        self, model, device: Optional[torch.device] = None, image_size: int = 224
+    ):
         self.model = model
         self.device = device or torch.device("cpu")
         self.model.to(self.device)
@@ -314,12 +328,14 @@ class ExplainablePredictor:
         self.gradcam = GradCAM(model)
         self.image_size = image_size
 
-        self.transform = transforms.Compose([
-            transforms.Resize((image_size + 32, image_size + 32)),
-            transforms.CenterCrop(image_size),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-        ])
+        self.transform = transforms.Compose(
+            [
+                transforms.Resize((image_size + 32, image_size + 32)),
+                transforms.CenterCrop(image_size),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            ]
+        )
 
     def predict(
         self,
@@ -383,7 +399,9 @@ class ExplainablePredictor:
         if generate_cam:
             input_tensor_grad = self.transform(pil_image).unsqueeze(0).to(self.device)
             input_tensor_grad.requires_grad_(True)
-            cam, _, _ = self.gradcam.generate(input_tensor_grad, target_class=predicted_class)
+            cam, _, _ = self.gradcam.generate(
+                input_tensor_grad, target_class=predicted_class
+            )
             cam_overlay = overlay_gradcam(pil_image, cam, alpha=0.45)
 
             result["cam"] = cam
@@ -400,7 +418,7 @@ class ExplainablePredictor:
         """Batch inference without Grad-CAM (for speed)."""
         results = []
         for i in range(0, len(images), batch_size):
-            batch_images = images[i:i + batch_size]
+            batch_images = images[i : i + batch_size]
             tensors = []
             for img in batch_images:
                 if isinstance(img, (str, Path)):
@@ -416,13 +434,15 @@ class ExplainablePredictor:
 
             for j, prob in enumerate(probs):
                 pred_class = int(np.argmax(prob))
-                results.append({
-                    "predicted_class": pred_class,
-                    "predicted_label": self.IDX_TO_NAME[pred_class],
-                    "confidence": float(prob[pred_class]),
-                    "is_distracted": pred_class != 0,
-                    "all_probabilities": prob.tolist(),
-                })
+                results.append(
+                    {
+                        "predicted_class": pred_class,
+                        "predicted_label": self.IDX_TO_NAME[pred_class],
+                        "confidence": float(prob[pred_class]),
+                        "is_distracted": pred_class != 0,
+                        "all_probabilities": prob.tolist(),
+                    }
+                )
 
         return results
 
@@ -432,6 +452,7 @@ if __name__ == "__main__":
 
     # Demo with synthetic model
     import sys
+
     sys.path.insert(0, str(Path(__file__).parent.parent.parent))
     from src.model.architecture import create_model
 
@@ -441,7 +462,9 @@ if __name__ == "__main__":
     predictor = ExplainablePredictor(model, device=device)
 
     # Test with a synthetic image
-    dummy_img = Image.fromarray(np.random.randint(0, 255, (224, 224, 3), dtype=np.uint8))
+    dummy_img = Image.fromarray(
+        np.random.randint(0, 255, (224, 224, 3), dtype=np.uint8)
+    )
     result = predictor.predict(dummy_img, generate_cam=True)
 
     print(f"\nPrediction: {result['predicted_label']}")

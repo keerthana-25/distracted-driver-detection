@@ -39,6 +39,7 @@ NUM_CLASSES = 10
 # Custom Classification Head
 # ─────────────────────────────────────────────
 
+
 class DistractedDriverHead(nn.Module):
     """
     Custom classification head replacing the default timm head.
@@ -98,6 +99,7 @@ class DistractedDriverHead(nn.Module):
 # Main Model
 # ─────────────────────────────────────────────
 
+
 class DistractedDriverModel(nn.Module):
     """
     Full model: pretrained backbone + custom classification head.
@@ -131,8 +133,8 @@ class DistractedDriverModel(nn.Module):
         self.backbone = timm.create_model(
             architecture,
             pretrained=pretrained,
-            num_classes=0,        # Remove original classification head
-            global_pool="",       # Remove global pooling (we handle in our head)
+            num_classes=0,  # Remove original classification head
+            global_pool="",  # Remove global pooling (we handle in our head)
         )
 
         # Get feature dimension from backbone
@@ -252,9 +254,18 @@ class DistractedDriverModel(nn.Module):
 
 SUPPORTED_ARCHITECTURES = {
     "efficientnet_b0": {"description": "Lightweight, fast inference", "params": "5.3M"},
-    "efficientnet_b3": {"description": "Primary model, best accuracy/size tradeoff", "params": "12M"},
-    "resnet50": {"description": "Baseline ResNet, well-understood behavior", "params": "25.6M"},
-    "mobilenetv3_large_100": {"description": "Mobile-optimized, minimal latency", "params": "5.4M"},
+    "efficientnet_b3": {
+        "description": "Primary model, best accuracy/size tradeoff",
+        "params": "12M",
+    },
+    "resnet50": {
+        "description": "Baseline ResNet, well-understood behavior",
+        "params": "25.6M",
+    },
+    "mobilenetv3_large_100": {
+        "description": "Mobile-optimized, minimal latency",
+        "params": "5.4M",
+    },
 }
 
 
@@ -356,6 +367,7 @@ def save_checkpoint(
 
     if is_best:
         import shutil
+
         best_path = str(save_path).replace(".pth", "_best.pth")
         shutil.copy2(save_path, best_path)
         logger.info(f"New best model saved: {best_path}")
@@ -364,6 +376,7 @@ def save_checkpoint(
 # ─────────────────────────────────────────────
 # Metrics Module
 # ─────────────────────────────────────────────
+
 
 class ModelMetrics:
     """
@@ -380,13 +393,27 @@ class ModelMetrics:
         self.device = device or torch.device("cpu")
         self.num_classes = num_classes
 
-        self.accuracy_top1 = MulticlassAccuracy(num_classes=num_classes, top_k=1).to(self.device)
-        self.accuracy_top3 = MulticlassAccuracy(num_classes=num_classes, top_k=3).to(self.device)
-        self.precision = MulticlassPrecision(num_classes=num_classes, average="macro").to(self.device)
-        self.recall = MulticlassRecall(num_classes=num_classes, average="macro").to(self.device)
-        self.f1 = MulticlassF1Score(num_classes=num_classes, average="macro").to(self.device)
-        self.auroc = MulticlassAUROC(num_classes=num_classes, average="macro").to(self.device)
-        self.confusion_matrix = MulticlassConfusionMatrix(num_classes=num_classes).to(self.device)
+        self.accuracy_top1 = MulticlassAccuracy(num_classes=num_classes, top_k=1).to(
+            self.device
+        )
+        self.accuracy_top3 = MulticlassAccuracy(num_classes=num_classes, top_k=3).to(
+            self.device
+        )
+        self.precision = MulticlassPrecision(
+            num_classes=num_classes, average="macro"
+        ).to(self.device)
+        self.recall = MulticlassRecall(num_classes=num_classes, average="macro").to(
+            self.device
+        )
+        self.f1 = MulticlassF1Score(num_classes=num_classes, average="macro").to(
+            self.device
+        )
+        self.auroc = MulticlassAUROC(num_classes=num_classes, average="macro").to(
+            self.device
+        )
+        self.confusion_matrix = MulticlassConfusionMatrix(num_classes=num_classes).to(
+            self.device
+        )
 
         self.per_class_accuracy = MulticlassAccuracy(
             num_classes=num_classes, average="none"
@@ -414,7 +441,10 @@ class ModelMetrics:
             "f1_macro": self.f1.compute().item(),
             "auroc": self.auroc.compute().item(),
             "confusion_matrix": self.confusion_matrix.compute().cpu().numpy().tolist(),
-            "per_class_accuracy": self.per_class_accuracy.compute().cpu().numpy().tolist(),
+            "per_class_accuracy": self.per_class_accuracy.compute()
+            .cpu()
+            .numpy()
+            .tolist(),
         }
 
     def reset(self):
@@ -432,6 +462,7 @@ class ModelMetrics:
 # ─────────────────────────────────────────────
 # Loss Function
 # ─────────────────────────────────────────────
+
 
 class LabelSmoothingCrossEntropy(nn.Module):
     """

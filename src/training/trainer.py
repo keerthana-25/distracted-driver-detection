@@ -57,6 +57,7 @@ logger = logging.getLogger(__name__)
 # Training Configuration
 # ─────────────────────────────────────────────
 
+
 class TrainingConfig:
     """All hyperparameters in one place for reproducibility and logging."""
 
@@ -114,6 +115,7 @@ class TrainingConfig:
 # Early Stopping
 # ─────────────────────────────────────────────
 
+
 class EarlyStopping:
     """
     Early stopping monitors validation accuracy.
@@ -156,6 +158,7 @@ class EarlyStopping:
 # ─────────────────────────────────────────────
 # Scheduler Factory
 # ─────────────────────────────────────────────
+
 
 def build_scheduler(optimizer, config: TrainingConfig, steps_per_epoch: int):
     """
@@ -202,6 +205,7 @@ def build_scheduler(optimizer, config: TrainingConfig, steps_per_epoch: int):
 # Single Epoch Train / Eval
 # ─────────────────────────────────────────────
 
+
 def train_one_epoch(
     model: DistractedDriverModel,
     loader,
@@ -239,9 +243,7 @@ def train_one_epoch(
         # Gradient accumulation: update only every N batches
         if (batch_idx + 1) % config.accumulate_grad_batches == 0:
             scaler.unscale_(optimizer)
-            nn.utils.clip_grad_norm_(
-                model.parameters(), config.gradient_clip_val
-            )
+            nn.utils.clip_grad_norm_(model.parameters(), config.gradient_clip_val)
             scaler.step(optimizer)
             scaler.update()
             optimizer.zero_grad()
@@ -250,7 +252,9 @@ def train_one_epoch(
             metrics.update(logits.detach(), targets)
 
         total_loss += loss.item() * config.accumulate_grad_batches
-        pbar.set_postfix({"loss": f"{loss.item() * config.accumulate_grad_batches:.4f}"})
+        pbar.set_postfix(
+            {"loss": f"{loss.item() * config.accumulate_grad_batches:.4f}"}
+        )
 
         # Log batch-level metrics every 50 steps
         global_step = epoch * num_batches + batch_idx
@@ -299,6 +303,7 @@ def evaluate(
 # Main Trainer
 # ─────────────────────────────────────────────
 
+
 class Trainer:
     """
     MLOps-compliant trainer with full experiment tracking.
@@ -338,12 +343,25 @@ class Trainer:
         """
         if phase == 1:
             params = [p for p in model.classifier.parameters() if p.requires_grad]
-            return AdamW(params, lr=self.config.learning_rate, weight_decay=self.config.weight_decay)
+            return AdamW(
+                params,
+                lr=self.config.learning_rate,
+                weight_decay=self.config.weight_decay,
+            )
         else:
-            return AdamW([
-                {"params": model.backbone.parameters(), "lr": self.config.backbone_lr},
-                {"params": model.classifier.parameters(), "lr": self.config.learning_rate},
-            ], weight_decay=self.config.weight_decay)
+            return AdamW(
+                [
+                    {
+                        "params": model.backbone.parameters(),
+                        "lr": self.config.backbone_lr,
+                    },
+                    {
+                        "params": model.classifier.parameters(),
+                        "lr": self.config.learning_rate,
+                    },
+                ],
+                weight_decay=self.config.weight_decay,
+            )
 
     def _log_epoch_metrics(
         self,
@@ -364,16 +382,19 @@ class Trainer:
         self.writer.add_scalar("LR", lr, epoch)
 
         # MLflow
-        mlflow.log_metrics({
-            "train_loss": train_metrics["loss"],
-            "train_accuracy": train_metrics["accuracy_top1"],
-            "train_f1": train_metrics["f1_macro"],
-            "val_loss": val_metrics["loss"],
-            "val_accuracy": val_metrics["accuracy_top1"],
-            "val_f1": val_metrics["f1_macro"],
-            "val_auroc": val_metrics["auroc"],
-            "learning_rate": lr,
-        }, step=epoch)
+        mlflow.log_metrics(
+            {
+                "train_loss": train_metrics["loss"],
+                "train_accuracy": train_metrics["accuracy_top1"],
+                "train_f1": train_metrics["f1_macro"],
+                "val_loss": val_metrics["loss"],
+                "val_accuracy": val_metrics["accuracy_top1"],
+                "val_f1": val_metrics["f1_macro"],
+                "val_auroc": val_metrics["auroc"],
+                "learning_rate": lr,
+            },
+            step=epoch,
+        )
 
     def train(self, dataloaders: Dict) -> Dict:
         """
@@ -422,7 +443,9 @@ class Trainer:
             mlflow.log_param("num_train_samples", len(train_loader.dataset))
             mlflow.log_param("num_val_samples", len(val_loader.dataset))
 
-            logger.info(f"Starting training: {config.epochs} epochs, device={self.device}")
+            logger.info(
+                f"Starting training: {config.epochs} epochs, device={self.device}"
+            )
             logger.info(f"MLflow Run ID: {run.info.run_id}")
 
             for epoch in range(config.epochs):
@@ -438,8 +461,15 @@ class Trainer:
 
                 # Train
                 train_metrics = train_one_epoch(
-                    model, train_loader, optimizer, loss_fn, scaler,
-                    config, epoch, self.writer, self.device
+                    model,
+                    train_loader,
+                    optimizer,
+                    loss_fn,
+                    scaler,
+                    config,
+                    epoch,
+                    self.writer,
+                    self.device,
                 )
 
                 # Validate
@@ -452,7 +482,9 @@ class Trainer:
                 current_lr = optimizer.param_groups[0]["lr"]
 
                 # Log
-                self._log_epoch_metrics(train_metrics, val_metrics, epoch, current_lr, run)
+                self._log_epoch_metrics(
+                    train_metrics, val_metrics, epoch, current_lr, run
+                )
 
                 epoch_time = time.time() - epoch_start
                 val_acc = val_metrics["accuracy_top1"]
@@ -474,8 +506,13 @@ class Trainer:
                     best_val_acc = val_acc
                     best_metrics = {**val_metrics, "epoch": epoch + 1}
                     save_checkpoint(
-                        model, optimizer, epoch,
-                        {"best_val_acc": best_val_acc, "val_f1": val_metrics["f1_macro"]},
+                        model,
+                        optimizer,
+                        epoch,
+                        {
+                            "best_val_acc": best_val_acc,
+                            "val_f1": val_metrics["f1_macro"],
+                        },
                         self.output_dir / "best_model.pth",
                         is_best=True,
                     )
@@ -485,20 +522,24 @@ class Trainer:
                 # Periodic checkpoint
                 if (epoch + 1) % 5 == 0:
                     save_checkpoint(
-                        model, optimizer, epoch,
+                        model,
+                        optimizer,
+                        epoch,
                         {"val_acc": val_acc},
                         self.output_dir / f"checkpoint_epoch_{epoch+1}.pth",
                     )
 
-                history.append({
-                    "epoch": epoch + 1,
-                    "train_loss": train_metrics["loss"],
-                    "train_acc": train_metrics["accuracy_top1"],
-                    "val_loss": val_metrics["loss"],
-                    "val_acc": val_acc,
-                    "val_f1": val_metrics["f1_macro"],
-                    "lr": current_lr,
-                })
+                history.append(
+                    {
+                        "epoch": epoch + 1,
+                        "train_loss": train_metrics["loss"],
+                        "train_acc": train_metrics["accuracy_top1"],
+                        "val_loss": val_metrics["loss"],
+                        "val_acc": val_acc,
+                        "val_f1": val_metrics["f1_macro"],
+                        "lr": current_lr,
+                    }
+                )
 
                 # Early stopping
                 if early_stopping(val_acc):
@@ -512,12 +553,14 @@ class Trainer:
             mlflow.log_artifact(str(history_path))
 
             # Log summary metrics
-            mlflow.log_metrics({
-                "best_val_accuracy": best_val_acc,
-                "best_val_f1": best_metrics.get("f1_macro", 0),
-                "best_val_auroc": best_metrics.get("auroc", 0),
-                "best_epoch": best_metrics.get("epoch", 0),
-            })
+            mlflow.log_metrics(
+                {
+                    "best_val_accuracy": best_val_acc,
+                    "best_val_f1": best_metrics.get("f1_macro", 0),
+                    "best_val_auroc": best_metrics.get("auroc", 0),
+                    "best_epoch": best_metrics.get("epoch", 0),
+                }
+            )
 
         self.writer.close()
         logger.info(f"\nTraining complete. Best val accuracy: {best_val_acc:.4f}")
@@ -527,6 +570,7 @@ class Trainer:
 # ─────────────────────────────────────────────
 # Ablation Study Engine
 # ─────────────────────────────────────────────
+
 
 class AblationStudy:
     """
@@ -570,13 +614,15 @@ class AblationStudy:
         logger.info(f"\n{'='*60}")
         logger.info(f"ABLATION: {sweep_name}")
         logger.info(f"  Sweeping {param_name} over: {values}")
-        logger.info('='*60)
+        logger.info("=" * 60)
 
         results = []
         for value in values:
             config_dict = self.base_config.to_dict()
             config_dict[param_name] = value
-            config_dict["epochs"] = min(self.base_config.epochs, 10)  # Short ablation runs
+            config_dict["epochs"] = min(
+                self.base_config.epochs, 10
+            )  # Short ablation runs
             config_dict["run_name"] = f"{sweep_name}_{param_name}={value}"
             config_dict["experiment_name"] = f"ablation_{sweep_name}"
 
@@ -593,7 +639,9 @@ class AblationStudy:
             }
             results.append(result)
             self.results.append(result)
-            logger.info(f"  {param_name}={value}: val_acc={result['best_val_accuracy']:.4f}")
+            logger.info(
+                f"  {param_name}={value}: val_acc={result['best_val_accuracy']:.4f}"
+            )
 
         return results
 
@@ -607,6 +655,7 @@ class AblationStudy:
 # ─────────────────────────────────────────────
 # Entry Point
 # ─────────────────────────────────────────────
+
 
 def train_from_config(config_path: str, data_dir: Optional[str] = None) -> Dict:
     """Main training entry point from YAML config."""
@@ -648,22 +697,26 @@ if __name__ == "__main__":
 
     # Demo: train on synthetic dataset
     logger.info("Generating synthetic dataset for demo training...")
-    synthetic_dir = generate_synthetic_dataset("data/synthetic_demo", samples_per_class=40)
+    synthetic_dir = generate_synthetic_dataset(
+        "data/synthetic_demo", samples_per_class=40
+    )
 
-    config = TrainingConfig({
-        "architecture": "efficientnet_b0",
-        "epochs": 5,
-        "batch_size": 8,
-        "learning_rate": 1e-3,
-        "freeze_backbone_epochs": 1,
-        "early_stopping_patience": 3,
-        "data_dir": synthetic_dir,
-        "output_dir": "models/demo",
-        "num_workers": 0,
-        "mixed_precision": False,
-        "pretrained": False,
-        "run_name": "synthetic_demo",
-    })
+    config = TrainingConfig(
+        {
+            "architecture": "efficientnet_b0",
+            "epochs": 5,
+            "batch_size": 8,
+            "learning_rate": 1e-3,
+            "freeze_backbone_epochs": 1,
+            "early_stopping_patience": 3,
+            "data_dir": synthetic_dir,
+            "output_dir": "models/demo",
+            "num_workers": 0,
+            "mixed_precision": False,
+            "pretrained": False,
+            "run_name": "synthetic_demo",
+        }
+    )
 
     dataloaders = create_dataloaders(
         data_dir=synthetic_dir,

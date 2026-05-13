@@ -14,6 +14,7 @@ import torch
 from PIL import Image
 import gradio as gr
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
@@ -29,16 +30,41 @@ from src.explainability.gradcam import ExplainablePredictor
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 CLASS_DEFINITIONS = {
-    0: {"name": "Safe Driving",            "risk": "safe",   "color": "#27ae60", "emoji": "✅"},
-    1: {"name": "Texting (Right Hand)",    "risk": "high",   "color": "#e74c3c", "emoji": "📱"},
-    2: {"name": "Phone Call (Right Hand)", "risk": "high",   "color": "#e74c3c", "emoji": "📞"},
-    3: {"name": "Texting (Left Hand)",     "risk": "high",   "color": "#e74c3c", "emoji": "📱"},
-    4: {"name": "Phone Call (Left Hand)",  "risk": "high",   "color": "#e74c3c", "emoji": "📞"},
-    5: {"name": "Radio Adjusting",         "risk": "medium", "color": "#f39c12", "emoji": "📻"},
-    6: {"name": "Drinking",                "risk": "medium", "color": "#f39c12", "emoji": "🥤"},
-    7: {"name": "Reaching Behind",         "risk": "high",   "color": "#e74c3c", "emoji": "🙆"},
-    8: {"name": "Hair / Makeup",           "risk": "medium", "color": "#f39c12", "emoji": "💄"},
-    9: {"name": "Talking to Passenger",    "risk": "low",    "color": "#3498db", "emoji": "💬"},
+    0: {"name": "Safe Driving", "risk": "safe", "color": "#27ae60", "emoji": "✅"},
+    1: {
+        "name": "Texting (Right Hand)",
+        "risk": "high",
+        "color": "#e74c3c",
+        "emoji": "📱",
+    },
+    2: {
+        "name": "Phone Call (Right Hand)",
+        "risk": "high",
+        "color": "#e74c3c",
+        "emoji": "📞",
+    },
+    3: {
+        "name": "Texting (Left Hand)",
+        "risk": "high",
+        "color": "#e74c3c",
+        "emoji": "📱",
+    },
+    4: {
+        "name": "Phone Call (Left Hand)",
+        "risk": "high",
+        "color": "#e74c3c",
+        "emoji": "📞",
+    },
+    5: {"name": "Radio Adjusting", "risk": "medium", "color": "#f39c12", "emoji": "📻"},
+    6: {"name": "Drinking", "risk": "medium", "color": "#f39c12", "emoji": "🥤"},
+    7: {"name": "Reaching Behind", "risk": "high", "color": "#e74c3c", "emoji": "🙆"},
+    8: {"name": "Hair / Makeup", "risk": "medium", "color": "#f39c12", "emoji": "💄"},
+    9: {
+        "name": "Talking to Passenger",
+        "risk": "low",
+        "color": "#3498db",
+        "emoji": "💬",
+    },
 }
 
 
@@ -51,6 +77,7 @@ def load_predictor(model_path=None, architecture="efficientnet_b3"):
         # Download from HuggingFace if not local
         try:
             from huggingface_hub import hf_hub_download
+
             downloaded = hf_hub_download(
                 repo_id="keerthana-25/distracted-driver-detection",
                 filename="models/best_model.pth",
@@ -65,26 +92,26 @@ def load_predictor(model_path=None, architecture="efficientnet_b3"):
 
 
 MODEL_PATH = os.environ.get("MODEL_PATH", str(ROOT / "models" / "best_model.pth"))
-PREDICTOR  = load_predictor(MODEL_PATH)
+PREDICTOR = load_predictor(MODEL_PATH)
 
 
 def _alert_html(label, confidence, risk):
     if risk == "safe":
         bg, border, icon = "linear-gradient(135deg,#1a5c2a,#27ae60)", "#2ecc71", "✅"
         title = "DRIVER IS SAFE"
-        anim  = ""
+        anim = ""
     elif risk == "high":
         bg, border, icon = "linear-gradient(135deg,#7b0000,#c0392b)", "#ff4444", "🚨"
         title = "DANGER — DRIVER IS DISTRACTED!"
-        anim  = "animation: flash 0.7s infinite alternate;"
+        anim = "animation: flash 0.7s infinite alternate;"
     elif risk == "medium":
         bg, border, icon = "linear-gradient(135deg,#7a4800,#e67e22)", "#f39c12", "⚠️"
         title = "WARNING — Unsafe Behaviour Detected"
-        anim  = ""
+        anim = ""
     else:
         bg, border, icon = "linear-gradient(135deg,#003d6b,#2980b9)", "#3498db", "ℹ️"
         title = "Low Risk Detected"
-        anim  = ""
+        anim = ""
 
     return f"""
 <style>
@@ -119,16 +146,16 @@ def predict_image(image):
         return _empty_html(), None, None, ""
 
     pil_image = Image.fromarray(image.astype(np.uint8)).convert("RGB")
-    result    = PREDICTOR.predict(pil_image, top_k=5, generate_cam=True)
+    result = PREDICTOR.predict(pil_image, top_k=5, generate_cam=True)
 
     pred_class = result["predicted_class"]
     pred_label = result["predicted_label"]
     confidence = result["confidence"]
-    risk       = CLASS_DEFINITIONS[pred_class]["risk"]
+    risk = CLASS_DEFINITIONS[pred_class]["risk"]
 
-    alert      = _alert_html(pred_label, confidence, risk)
+    alert = _alert_html(pred_label, confidence, risk)
     cam_overlay = result.get("cam_overlay")
-    prob_fig   = _prob_chart(result["all_probabilities"])
+    prob_fig = _prob_chart(result["all_probabilities"])
 
     details = "### Top-5 Predictions\n"
     for p in result["top_k_predictions"]:
@@ -139,15 +166,25 @@ def predict_image(image):
 
 
 def _prob_chart(probs):
-    names  = [CLASS_DEFINITIONS[i]["emoji"] + "  " + CLASS_DEFINITIONS[i]["name"] for i in range(10)]
+    names = [
+        CLASS_DEFINITIONS[i]["emoji"] + "  " + CLASS_DEFINITIONS[i]["name"]
+        for i in range(10)
+    ]
     colors = [CLASS_DEFINITIONS[i]["color"] for i in range(10)]
 
     fig, ax = plt.subplots(figsize=(8, 5))
     fig.patch.set_facecolor("#111")
     ax.set_facecolor("#1a1a2e")
 
-    bars = ax.barh(range(10), [p * 100 for p in probs],
-                   color=colors, alpha=0.88, edgecolor="white", linewidth=0.4, height=0.65)
+    bars = ax.barh(
+        range(10),
+        [p * 100 for p in probs],
+        color=colors,
+        alpha=0.88,
+        edgecolor="white",
+        linewidth=0.4,
+        height=0.65,
+    )
     ax.set_yticks(range(10))
     ax.set_yticklabels(names, fontsize=9, color="white")
     ax.set_xlabel("Confidence (%)", color="white", fontsize=10)
@@ -156,8 +193,15 @@ def _prob_chart(probs):
 
     for bar, prob in zip(bars, probs):
         if prob > 0.01:
-            ax.text(bar.get_width() + 0.8, bar.get_y() + bar.get_height() / 2,
-                    f"{prob:.1%}", va="center", ha="left", color="white", fontsize=8)
+            ax.text(
+                bar.get_width() + 0.8,
+                bar.get_y() + bar.get_height() / 2,
+                f"{prob:.1%}",
+                va="center",
+                ha="left",
+                color="white",
+                fontsize=8,
+            )
 
     ax.tick_params(colors="white")
     for sp in ax.spines.values():
@@ -202,7 +246,9 @@ def build_interface():
                             type="numpy",
                             height=320,
                         )
-                        analyze_btn = gr.Button("🔍 Analyze Driver Behavior", variant="primary", size="lg")
+                        analyze_btn = gr.Button(
+                            "🔍 Analyze Driver Behavior", variant="primary", size="lg"
+                        )
 
                     with gr.Column(scale=1):
                         cam_output = gr.Image(
@@ -212,7 +258,9 @@ def build_interface():
 
                 with gr.Row():
                     prob_chart = gr.Plot(label="Class Probability Distribution")
-                    details_md = gr.Markdown(value="*Upload an image to see predictions*")
+                    details_md = gr.Markdown(
+                        value="*Upload an image to see predictions*"
+                    )
 
                 # Trigger on button click
                 analyze_btn.click(

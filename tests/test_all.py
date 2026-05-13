@@ -29,11 +29,13 @@ sys.path.insert(0, str(ROOT))
 # Data Tests
 # ─────────────────────────────────────────────
 
+
 class TestDataset(unittest.TestCase):
 
     def setUp(self):
         """Create a tiny synthetic dataset for testing."""
         from src.data.dataset import generate_synthetic_dataset
+
         self.tmp_dir = tempfile.mkdtemp()
         self.data_dir = generate_synthetic_dataset(self.tmp_dir, samples_per_class=8)
 
@@ -42,7 +44,8 @@ class TestDataset(unittest.TestCase):
         from src.data.dataset import DistractedDriverDataset, get_val_transforms
 
         dataset = DistractedDriverDataset(
-            self.data_dir, split="train",
+            self.data_dir,
+            split="train",
             transform=get_val_transforms(224),
         )
         self.assertGreater(len(dataset), 0)
@@ -52,7 +55,8 @@ class TestDataset(unittest.TestCase):
         from src.data.dataset import DistractedDriverDataset, get_val_transforms
 
         dataset = DistractedDriverDataset(
-            self.data_dir, split="train",
+            self.data_dir,
+            split="train",
             transform=get_val_transforms(224),
         )
         image, label = dataset[0]
@@ -65,7 +69,8 @@ class TestDataset(unittest.TestCase):
         from src.data.dataset import DistractedDriverDataset, get_val_transforms
 
         dataset = DistractedDriverDataset(
-            self.data_dir, split="train",
+            self.data_dir,
+            split="train",
             transform=get_val_transforms(224),
         )
         weights = dataset.get_class_weights()
@@ -76,9 +81,7 @@ class TestDataset(unittest.TestCase):
         """DataLoaders should be created for all splits."""
         from src.data.dataset import create_dataloaders
 
-        loaders = create_dataloaders(
-            self.data_dir, batch_size=4, num_workers=0
-        )
+        loaders = create_dataloaders(self.data_dir, batch_size=4, num_workers=0)
         self.assertIn("train", loaders)
         self.assertIn("val", loaders)
         self.assertIn("test", loaders)
@@ -99,7 +102,8 @@ class TestDataset(unittest.TestCase):
         from src.data.dataset import DistractedDriverDataset, get_val_transforms
 
         dataset = DistractedDriverDataset(
-            self.data_dir, split="train",
+            self.data_dir,
+            split="train",
             transform=get_val_transforms(224),
         )
         dist = dataset.get_class_distribution()
@@ -109,6 +113,7 @@ class TestDataset(unittest.TestCase):
 # ─────────────────────────────────────────────
 # Model Tests
 # ─────────────────────────────────────────────
+
 
 class TestModel(unittest.TestCase):
 
@@ -158,23 +163,37 @@ class TestModel(unittest.TestCase):
         model.eval()
         probs = model.predict_proba(self.dummy_input)
         row_sums = probs.sum(dim=1)
-        self.assertTrue(torch.allclose(row_sums, torch.ones(self.batch_size), atol=1e-5))
+        self.assertTrue(
+            torch.allclose(row_sums, torch.ones(self.batch_size), atol=1e-5)
+        )
 
     def test_checkpoint_save_load(self):
         """Saved checkpoint should restore model weights correctly."""
         import tempfile
         import os
-        from src.model.architecture import create_model, save_checkpoint, load_checkpoint
+        from src.model.architecture import (
+            create_model,
+            save_checkpoint,
+            load_checkpoint,
+        )
 
         model = create_model("efficientnet_b0", pretrained=False, device=self.device)
         optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
 
         with tempfile.TemporaryDirectory() as tmpdir:
             ckpt_path = Path(tmpdir) / "test_ckpt.pth"
-            save_checkpoint(model, optimizer, epoch=5, metrics={"val_acc": 0.9}, save_path=str(ckpt_path))
+            save_checkpoint(
+                model,
+                optimizer,
+                epoch=5,
+                metrics={"val_acc": 0.9},
+                save_path=str(ckpt_path),
+            )
             self.assertTrue(ckpt_path.exists())
 
-            model2 = create_model("efficientnet_b0", pretrained=False, device=self.device)
+            model2 = create_model(
+                "efficientnet_b0", pretrained=False, device=self.device
+            )
             model2 = load_checkpoint(model2, str(ckpt_path), self.device)
 
             # Verify weights match
@@ -185,6 +204,7 @@ class TestModel(unittest.TestCase):
 # ─────────────────────────────────────────────
 # Loss Function & Metrics Tests
 # ─────────────────────────────────────────────
+
 
 class TestLossAndMetrics(unittest.TestCase):
 
@@ -236,13 +256,16 @@ class TestLossAndMetrics(unittest.TestCase):
 # Grad-CAM Tests
 # ─────────────────────────────────────────────
 
+
 class TestGradCAM(unittest.TestCase):
 
     def setUp(self):
         from src.model.architecture import create_model
 
         self.device = torch.device("cpu")
-        self.model = create_model("efficientnet_b0", pretrained=False, device=self.device)
+        self.model = create_model(
+            "efficientnet_b0", pretrained=False, device=self.device
+        )
 
     def test_gradcam_generates(self):
         """Grad-CAM should generate a 2D heatmap array."""
@@ -278,7 +301,9 @@ class TestGradCAM(unittest.TestCase):
         from src.explainability.gradcam import ExplainablePredictor
 
         predictor = ExplainablePredictor(self.model, device=self.device)
-        dummy_img = Image.fromarray(np.random.randint(0, 255, (224, 224, 3), dtype=np.uint8))
+        dummy_img = Image.fromarray(
+            np.random.randint(0, 255, (224, 224, 3), dtype=np.uint8)
+        )
         result = predictor.predict(dummy_img, generate_cam=True)
 
         self.assertIn("predicted_class", result)
@@ -295,6 +320,7 @@ class TestGradCAM(unittest.TestCase):
 # ─────────────────────────────────────────────
 # Training Tests
 # ─────────────────────────────────────────────
+
 
 class TestTrainer(unittest.TestCase):
 
@@ -336,19 +362,21 @@ class TestTrainer(unittest.TestCase):
         tmp_dir = tempfile.mkdtemp()
         data_dir = generate_synthetic_dataset(tmp_dir, samples_per_class=12)
 
-        config = TrainingConfig({
-            "architecture": "efficientnet_b0",
-            "epochs": 2,
-            "batch_size": 4,
-            "num_workers": 0,
-            "pretrained": False,
-            "mixed_precision": False,
-            "freeze_backbone_epochs": 0,
-            "early_stopping_patience": 10,
-            "output_dir": str(Path(tmp_dir) / "models"),
-            "run_name": "unit_test",
-            "experiment_name": "unit_tests",
-        })
+        config = TrainingConfig(
+            {
+                "architecture": "efficientnet_b0",
+                "epochs": 2,
+                "batch_size": 4,
+                "num_workers": 0,
+                "pretrained": False,
+                "mixed_precision": False,
+                "freeze_backbone_epochs": 0,
+                "early_stopping_patience": 10,
+                "output_dir": str(Path(tmp_dir) / "models"),
+                "run_name": "unit_test",
+                "experiment_name": "unit_tests",
+            }
+        )
 
         dataloaders = create_dataloaders(data_dir, batch_size=4, num_workers=0)
         trainer = Trainer(config)
@@ -362,6 +390,7 @@ class TestTrainer(unittest.TestCase):
 # Visualization Tests
 # ─────────────────────────────────────────────
 
+
 class TestVisualizations(unittest.TestCase):
 
     def test_training_curves_generates(self):
@@ -370,9 +399,15 @@ class TestVisualizations(unittest.TestCase):
         from src.training.visualizations import plot_training_curves
 
         history = [
-            {"epoch": e+1, "train_loss": 2.0 - 0.05*e, "val_loss": 2.1 - 0.04*e,
-             "train_acc": 0.3 + 0.03*e, "val_acc": 0.28 + 0.025*e,
-             "val_f1": 0.27 + 0.024*e, "lr": 1e-3 * (0.9**e)}
+            {
+                "epoch": e + 1,
+                "train_loss": 2.0 - 0.05 * e,
+                "val_loss": 2.1 - 0.04 * e,
+                "train_acc": 0.3 + 0.03 * e,
+                "val_acc": 0.28 + 0.025 * e,
+                "val_f1": 0.27 + 0.024 * e,
+                "lr": 1e-3 * (0.9**e),
+            }
             for e in range(15)
         ]
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -383,6 +418,7 @@ class TestVisualizations(unittest.TestCase):
             fig = plot_training_curves(str(history_path), save_dir=tmpdir)
             self.assertIsNotNone(fig)
             import matplotlib.pyplot as plt
+
             plt.close("all")
 
 
@@ -392,5 +428,6 @@ class TestVisualizations(unittest.TestCase):
 
 if __name__ == "__main__":
     import logging
+
     logging.basicConfig(level=logging.WARNING)
     unittest.main(verbosity=2)

@@ -41,6 +41,7 @@ ROOT = Path(__file__).parent.parent
 # Pipeline Steps
 # ─────────────────────────────────────────────
 
+
 class DataIngestionStep:
     """
     Step 1: Data ingestion and validation.
@@ -81,7 +82,9 @@ class DataIngestionStep:
                 self._download_from_kaggle()
                 stats = compute_dataset_statistics(str(self.raw_dir))
             except Exception as e:
-                logger.warning(f"Kaggle download failed: {e}. Falling back to synthetic.")
+                logger.warning(
+                    f"Kaggle download failed: {e}. Falling back to synthetic."
+                )
                 return self.run(use_synthetic=True)
 
         output = {
@@ -105,11 +108,16 @@ class DataIngestionStep:
         self.raw_dir.mkdir(parents=True, exist_ok=True)
         result = subprocess.run(
             [
-                "kaggle", "competitions", "download",
-                "-c", "state-farm-distracted-driver-detection",
-                "-p", str(self.raw_dir),
+                "kaggle",
+                "competitions",
+                "download",
+                "-c",
+                "state-farm-distracted-driver-detection",
+                "-p",
+                str(self.raw_dir),
             ],
-            capture_output=True, text=True,
+            capture_output=True,
+            text=True,
         )
         if result.returncode != 0:
             raise RuntimeError(f"Kaggle download failed: {result.stderr}")
@@ -132,7 +140,11 @@ class DataProcessingStep:
         logger.info("=== STEP 2: Data Processing ===")
 
         sys.path.insert(0, str(ROOT))
-        from src.data.dataset import split_dataset, compute_dataset_statistics, generate_synthetic_dataset
+        from src.data.dataset import (
+            split_dataset,
+            compute_dataset_statistics,
+            generate_synthetic_dataset,
+        )
 
         processed_dir = Path(self.config.get("processed_dir", "data/processed"))
 
@@ -164,13 +176,19 @@ class DataProcessingStep:
 
                 with mlflow.start_run(run_name="data_processing", nested=True):
                     for split, info in stats.items():
-                        mlflow.log_metric(f"processed_{split}_samples", info.get("total", 0))
+                        mlflow.log_metric(
+                            f"processed_{split}_samples", info.get("total", 0)
+                        )
                     mlflow.log_param("train_ratio", 0.70)
                     mlflow.log_param("val_ratio", 0.15)
                     mlflow.log_param("test_ratio", 0.15)
                     mlflow.log_param("stratified", True)
 
-                return {"status": "success", "processed_dir": str(processed_dir), "statistics": stats}
+                return {
+                    "status": "success",
+                    "processed_dir": str(processed_dir),
+                    "statistics": stats,
+                }
 
             counts = split_dataset(
                 source_dir=source,
@@ -185,7 +203,11 @@ class DataProcessingStep:
             for split, info in stats.items():
                 mlflow.log_metric(f"processed_{split}_samples", info.get("total", 0))
 
-        return {"status": "success", "processed_dir": str(processed_dir), "statistics": stats}
+        return {
+            "status": "success",
+            "processed_dir": str(processed_dir),
+            "statistics": stats,
+        }
 
 
 class ModelTrainingStep:
@@ -239,6 +261,7 @@ class ModelEvaluationStep:
         logger.info("=== STEP 4: Model Evaluation ===")
 
         import torch
+
         sys.path.insert(0, str(ROOT))
         from src.model.architecture import create_model, load_checkpoint, ModelMetrics
         from src.data.dataset import IDX_TO_NAME
@@ -261,26 +284,37 @@ class ModelEvaluationStep:
         )
 
         import torch.nn as nn
+
         loss_fn = nn.CrossEntropyLoss()
         cfg = TrainingConfig(self.config)
 
-        test_metrics = evaluate(model, dataloaders["test"], loss_fn, cfg, device, "test")
+        test_metrics = evaluate(
+            model, dataloaders["test"], loss_fn, cfg, device, "test"
+        )
 
         with mlflow.start_run(run_name="model_evaluation", nested=True):
-            mlflow.log_metrics({
-                "test_accuracy_top1": test_metrics["accuracy_top1"],
-                "test_accuracy_top3": test_metrics.get("accuracy_top3", 0),
-                "test_f1_macro": test_metrics["f1_macro"],
-                "test_precision": test_metrics["precision_macro"],
-                "test_recall": test_metrics["recall_macro"],
-                "test_auroc": test_metrics["auroc"],
-                "test_loss": test_metrics["loss"],
-            })
+            mlflow.log_metrics(
+                {
+                    "test_accuracy_top1": test_metrics["accuracy_top1"],
+                    "test_accuracy_top3": test_metrics.get("accuracy_top3", 0),
+                    "test_f1_macro": test_metrics["f1_macro"],
+                    "test_precision": test_metrics["precision_macro"],
+                    "test_recall": test_metrics["recall_macro"],
+                    "test_auroc": test_metrics["auroc"],
+                    "test_loss": test_metrics["loss"],
+                }
+            )
 
             # Log per-class accuracy
             per_class_acc = test_metrics.get("per_class_accuracy", [])
             for i, acc in enumerate(per_class_acc):
-                safe_name = IDX_TO_NAME.get(i, str(i)).replace(" ", "_").replace("(", "").replace(")", "").replace("/", "_")
+                safe_name = (
+                    IDX_TO_NAME.get(i, str(i))
+                    .replace(" ", "_")
+                    .replace("(", "")
+                    .replace(")", "")
+                    .replace("/", "_")
+                )
                 mlflow.log_metric(f"test_acc_class_{safe_name}", acc)
 
         logger.info(f"Test Results:")
@@ -311,8 +345,8 @@ class ModelRegistryStep:
         acc = test_metrics.get("accuracy_top1", 0)
         f1 = test_metrics.get("f1_macro", 0)
         gates_passed = (
-            acc >= self.QUALITY_GATES["min_accuracy"] and
-            f1 >= self.QUALITY_GATES["min_f1"]
+            acc >= self.QUALITY_GATES["min_accuracy"]
+            and f1 >= self.QUALITY_GATES["min_f1"]
         )
 
         if not gates_passed:
@@ -335,6 +369,7 @@ class ModelRegistryStep:
         # Log and register
         with mlflow.start_run(run_name="model_registration", nested=True):
             import torch
+
             sys.path.insert(0, str(ROOT))
             from src.model.architecture import create_model, load_checkpoint
 
@@ -364,6 +399,7 @@ class ModelRegistryStep:
 # Full Pipeline Runner
 # ─────────────────────────────────────────────
 
+
 class MLPipeline:
     """
     Orchestrates the full end-to-end ML pipeline.
@@ -373,7 +409,9 @@ class MLPipeline:
     def __init__(self, config: Dict):
         self.config = config
         mlflow.set_tracking_uri(config.get("mlflow_tracking_uri", "mlruns"))
-        mlflow.set_experiment(config.get("experiment_name", "distracted-driver-detection"))
+        mlflow.set_experiment(
+            config.get("experiment_name", "distracted-driver-detection")
+        )
 
     def run(
         self,
@@ -390,7 +428,9 @@ class MLPipeline:
 
         results = {}
 
-        with mlflow.start_run(run_name=f"pipeline_{pipeline_start.strftime('%Y%m%d_%H%M%S')}"):
+        with mlflow.start_run(
+            run_name=f"pipeline_{pipeline_start.strftime('%Y%m%d_%H%M%S')}"
+        ):
             mlflow.log_params(self.config)
 
             # Step 1: Data Ingestion
@@ -431,7 +471,12 @@ class MLPipeline:
             results_path = Path("mlops/pipeline_results.json")
             results_path.parent.mkdir(parents=True, exist_ok=True)
             with open(results_path, "w") as f:
-                json.dump({k: v for k, v in results.items() if k != "ablation"}, f, indent=2, default=str)
+                json.dump(
+                    {k: v for k, v in results.items() if k != "ablation"},
+                    f,
+                    indent=2,
+                    default=str,
+                )
             mlflow.log_artifact(str(results_path))
 
             pipeline_duration = (datetime.now() - pipeline_start).total_seconds()
@@ -469,13 +514,22 @@ class MLPipeline:
 # CLI Entry Point
 # ─────────────────────────────────────────────
 
+
 def main():
-    parser = argparse.ArgumentParser(description="Distracted Driver Detection MLOps Pipeline")
-    parser.add_argument("--config", default="configs/config.yaml", help="Config file path")
+    parser = argparse.ArgumentParser(
+        description="Distracted Driver Detection MLOps Pipeline"
+    )
+    parser.add_argument(
+        "--config", default="configs/config.yaml", help="Config file path"
+    )
     parser.add_argument("--synthetic", action="store_true", help="Use synthetic data")
-    parser.add_argument("--skip-training", action="store_true", help="Skip training step")
+    parser.add_argument(
+        "--skip-training", action="store_true", help="Skip training step"
+    )
     parser.add_argument("--skip-ablation", action="store_true", default=True)
-    parser.add_argument("--run-ablation", action="store_true", help="Run ablation study")
+    parser.add_argument(
+        "--run-ablation", action="store_true", help="Run ablation study"
+    )
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -485,6 +539,7 @@ def main():
     )
 
     import yaml
+
     with open(args.config) as f:
         config = yaml.safe_load(f)
 

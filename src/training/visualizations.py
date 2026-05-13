@@ -27,16 +27,18 @@ from matplotlib.colors import LinearSegmentedColormap
 logger = logging.getLogger(__name__)
 
 # Style configuration
-plt.rcParams.update({
-    "figure.dpi": 150,
-    "figure.facecolor": "white",
-    "axes.facecolor": "#f8f9fa",
-    "axes.grid": True,
-    "grid.alpha": 0.3,
-    "font.family": "DejaVu Sans",
-    "axes.spines.top": False,
-    "axes.spines.right": False,
-})
+plt.rcParams.update(
+    {
+        "figure.dpi": 150,
+        "figure.facecolor": "white",
+        "axes.facecolor": "#f8f9fa",
+        "axes.grid": True,
+        "grid.alpha": 0.3,
+        "font.family": "DejaVu Sans",
+        "axes.spines.top": False,
+        "axes.spines.right": False,
+    }
+)
 
 CLASS_NAMES = [
     "Safe Driving",
@@ -69,7 +71,10 @@ RISK_COLORS = {
 # Training Curves
 # ─────────────────────────────────────────────
 
-def plot_training_curves(history_path: str, save_dir: str = "docs/figures") -> plt.Figure:
+
+def plot_training_curves(
+    history_path: str, save_dir: str = "docs/figures"
+) -> plt.Figure:
     """
     Plot comprehensive training curves:
     - Loss (train vs val)
@@ -88,8 +93,17 @@ def plot_training_curves(history_path: str, save_dir: str = "docs/figures") -> p
 
     # 1. Loss curves
     ax1 = fig.add_subplot(gs[0, 0])
-    ax1.plot(df["epoch"], df["train_loss"], "b-o", label="Train", markersize=3, linewidth=2)
-    ax1.plot(df["epoch"], df["val_loss"], "r-s", label="Validation", markersize=3, linewidth=2)
+    ax1.plot(
+        df["epoch"], df["train_loss"], "b-o", label="Train", markersize=3, linewidth=2
+    )
+    ax1.plot(
+        df["epoch"],
+        df["val_loss"],
+        "r-s",
+        label="Validation",
+        markersize=3,
+        linewidth=2,
+    )
     ax1.set_title("Training & Validation Loss", fontweight="bold", fontsize=12)
     ax1.set_xlabel("Epoch")
     ax1.set_ylabel("Loss")
@@ -98,10 +112,30 @@ def plot_training_curves(history_path: str, save_dir: str = "docs/figures") -> p
 
     # 2. Accuracy curves
     ax2 = fig.add_subplot(gs[0, 1])
-    ax2.plot(df["epoch"], df["train_acc"] * 100, "b-o", label="Train", markersize=3, linewidth=2)
-    ax2.plot(df["epoch"], df["val_acc"] * 100, "r-s", label="Validation", markersize=3, linewidth=2)
+    ax2.plot(
+        df["epoch"],
+        df["train_acc"] * 100,
+        "b-o",
+        label="Train",
+        markersize=3,
+        linewidth=2,
+    )
+    ax2.plot(
+        df["epoch"],
+        df["val_acc"] * 100,
+        "r-s",
+        label="Validation",
+        markersize=3,
+        linewidth=2,
+    )
     best_epoch = df.loc[df["val_acc"].idxmax()]
-    ax2.axvline(x=best_epoch["epoch"], color="green", linestyle="--", alpha=0.7, label=f"Best ({best_epoch['val_acc']:.1%})")
+    ax2.axvline(
+        x=best_epoch["epoch"],
+        color="green",
+        linestyle="--",
+        alpha=0.7,
+        label=f"Best ({best_epoch['val_acc']:.1%})",
+    )
     ax2.set_title("Top-1 Accuracy", fontweight="bold", fontsize=12)
     ax2.set_xlabel("Epoch")
     ax2.set_ylabel("Accuracy (%)")
@@ -111,7 +145,14 @@ def plot_training_curves(history_path: str, save_dir: str = "docs/figures") -> p
     # 3. F1 Score
     ax3 = fig.add_subplot(gs[0, 2])
     if "val_f1" in df.columns:
-        ax3.plot(df["epoch"], df["val_f1"] * 100, "g-D", markersize=3, linewidth=2, color="#9b59b6")
+        ax3.plot(
+            df["epoch"],
+            df["val_f1"] * 100,
+            "g-D",
+            markersize=3,
+            linewidth=2,
+            color="#9b59b6",
+        )
         ax3.fill_between(df["epoch"], df["val_f1"] * 100, alpha=0.15, color="#9b59b6")
         ax3.set_title("Validation F1 (Macro)", fontweight="bold", fontsize=12)
         ax3.set_xlabel("Epoch")
@@ -132,7 +173,9 @@ def plot_training_curves(history_path: str, save_dir: str = "docs/figures") -> p
     colors_gap = ["#e74c3c" if g > 5 else "#27ae60" for g in gap]
     ax5.bar(df["epoch"], gap, color=colors_gap, alpha=0.7, width=0.8)
     ax5.axhline(y=5, color="red", linestyle="--", alpha=0.5, label="Overfit threshold")
-    ax5.set_title("Train-Val Accuracy Gap (Overfit Monitor)", fontweight="bold", fontsize=12)
+    ax5.set_title(
+        "Train-Val Accuracy Gap (Overfit Monitor)", fontweight="bold", fontsize=12
+    )
     ax5.set_xlabel("Epoch")
     ax5.set_ylabel("Gap (%)")
     ax5.legend()
@@ -167,7 +210,12 @@ def plot_training_curves(history_path: str, save_dir: str = "docs/figures") -> p
             cell.set_facecolor("#ecf0f1")
     ax6.set_title("Training Summary", fontweight="bold", fontsize=12)
 
-    plt.suptitle("Training Progress — Distracted Driver Detection", fontsize=14, fontweight="bold", y=1.01)
+    plt.suptitle(
+        "Training Progress — Distracted Driver Detection",
+        fontsize=14,
+        fontweight="bold",
+        y=1.01,
+    )
     save_path = Path(save_dir) / "training_curves.png"
     plt.savefig(save_path, bbox_inches="tight", dpi=150)
     logger.info(f"Training curves saved: {save_path}")
@@ -177,6 +225,7 @@ def plot_training_curves(history_path: str, save_dir: str = "docs/figures") -> p
 # ─────────────────────────────────────────────
 # Confusion Matrix
 # ─────────────────────────────────────────────
+
 
 def plot_confusion_matrix(
     cm: np.ndarray,
@@ -204,11 +253,23 @@ def plot_confusion_matrix(
     colors = ["#ffffff", "#ffeaa7", "#fdcb6e", "#e17055", "#d63031"]
     cmap = LinearSegmentedColormap.from_list("custom", colors)
 
-    for ax, (data, title) in zip(axes, [
-        (cm_norm, "Normalized Confusion Matrix (Row %)" if normalize else "Confusion Matrix (Counts)"),
-        (cm.astype(float), "Raw Count Confusion Matrix"),
-    ]):
-        im = ax.imshow(data, interpolation="nearest", cmap=cmap, vmin=0, vmax=data.max())
+    for ax, (data, title) in zip(
+        axes,
+        [
+            (
+                cm_norm,
+                (
+                    "Normalized Confusion Matrix (Row %)"
+                    if normalize
+                    else "Confusion Matrix (Counts)"
+                ),
+            ),
+            (cm.astype(float), "Raw Count Confusion Matrix"),
+        ],
+    ):
+        im = ax.imshow(
+            data, interpolation="nearest", cmap=cmap, vmin=0, vmax=data.max()
+        )
         plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
 
         ax.set_xticks(range(len(class_names)))
@@ -224,11 +285,21 @@ def plot_confusion_matrix(
         for i in range(len(class_names)):
             for j in range(len(class_names)):
                 val = data[i, j]
-                fmt = f"{val:.2f}" if isinstance(data[0, 0], float) and data.max() <= 1 else f"{int(val)}"
-                ax.text(j, i, fmt,
-                        ha="center", va="center",
-                        color="white" if val > thresh else "black",
-                        fontsize=8, fontweight="bold" if i == j else "normal")
+                fmt = (
+                    f"{val:.2f}"
+                    if isinstance(data[0, 0], float) and data.max() <= 1
+                    else f"{int(val)}"
+                )
+                ax.text(
+                    j,
+                    i,
+                    fmt,
+                    ha="center",
+                    va="center",
+                    color="white" if val > thresh else "black",
+                    fontsize=8,
+                    fontweight="bold" if i == j else "normal",
+                )
 
     plt.suptitle("Confusion Matrix Analysis", fontsize=14, fontweight="bold")
     plt.tight_layout()
@@ -242,6 +313,7 @@ def plot_confusion_matrix(
 # ─────────────────────────────────────────────
 # Per-Class Accuracy Bar Chart
 # ─────────────────────────────────────────────
+
 
 def plot_per_class_accuracy(
     per_class_acc: List[float],
@@ -257,25 +329,45 @@ def plot_per_class_accuracy(
 
     colors = [RISK_COLORS.get(name, "#95a5a6") for name in class_names]
     x = range(len(class_names))
-    bars = ax.bar(x, [a * 100 for a in per_class_acc], color=colors, alpha=0.85,
-                  edgecolor="white", linewidth=0.5, width=0.7)
+    bars = ax.bar(
+        x,
+        [a * 100 for a in per_class_acc],
+        color=colors,
+        alpha=0.85,
+        edgecolor="white",
+        linewidth=0.5,
+        width=0.7,
+    )
 
     # Value labels on bars
     for bar, acc in zip(bars, per_class_acc):
-        ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.5,
-                f"{acc:.1%}", ha="center", va="bottom", fontsize=9, fontweight="bold")
+        ax.text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height() + 0.5,
+            f"{acc:.1%}",
+            ha="center",
+            va="bottom",
+            fontsize=9,
+            fontweight="bold",
+        )
 
     ax.set_xticks(list(x))
     ax.set_xticklabels(class_names, rotation=45, ha="right", fontsize=10)
     ax.set_ylabel("Accuracy (%)", fontsize=11)
     ax.set_title("Per-Class Test Accuracy", fontsize=13, fontweight="bold")
     ax.set_ylim(0, 110)
-    ax.axhline(y=np.mean(per_class_acc) * 100, color="#2c3e50", linestyle="--",
-               alpha=0.7, label=f"Mean: {np.mean(per_class_acc):.1%}")
+    ax.axhline(
+        y=np.mean(per_class_acc) * 100,
+        color="#2c3e50",
+        linestyle="--",
+        alpha=0.7,
+        label=f"Mean: {np.mean(per_class_acc):.1%}",
+    )
     ax.legend()
 
     # Legend for colors
     from matplotlib.patches import Patch
+
     legend_elements = [
         Patch(facecolor="#e74c3c", label="High Risk"),
         Patch(facecolor="#f39c12", label="Medium Risk"),
@@ -293,6 +385,7 @@ def plot_per_class_accuracy(
 # ─────────────────────────────────────────────
 # Ablation Study Visualizations
 # ─────────────────────────────────────────────
+
 
 def plot_ablation_results(
     ablation_results_path: str,
@@ -328,8 +421,11 @@ def plot_ablation_results(
 
     for ax, (sweep_name, sweep_results) in zip(axes, sweeps.items()):
         # Find the parameter being swept
-        param_keys = [k for k in sweep_results[0].keys()
-                      if k not in ("sweep", "best_val_accuracy", "best_val_f1", "best_epoch")]
+        param_keys = [
+            k
+            for k in sweep_results[0].keys()
+            if k not in ("sweep", "best_val_accuracy", "best_val_f1", "best_epoch")
+        ]
         param_key = param_keys[0] if param_keys else "param"
 
         values = [str(r.get(param_key, "")) for r in sweep_results]
@@ -338,22 +434,46 @@ def plot_ablation_results(
 
         x = range(len(values))
         w = 0.35
-        bars1 = ax.bar([xi - w/2 for xi in x], accuracies, width=w,
-                       color=colors_palette[0], alpha=0.8, label="Accuracy (%)")
-        bars2 = ax.bar([xi + w/2 for xi in x], f1_scores, width=w,
-                       color=colors_palette[1], alpha=0.8, label="F1 Score (%)")
+        bars1 = ax.bar(
+            [xi - w / 2 for xi in x],
+            accuracies,
+            width=w,
+            color=colors_palette[0],
+            alpha=0.8,
+            label="Accuracy (%)",
+        )
+        bars2 = ax.bar(
+            [xi + w / 2 for xi in x],
+            f1_scores,
+            width=w,
+            color=colors_palette[1],
+            alpha=0.8,
+            label="F1 Score (%)",
+        )
 
         ax.set_xticks(list(x))
         ax.set_xticklabels(values, rotation=30, ha="right", fontsize=10)
         ax.set_ylabel("Score (%)", fontsize=11)
-        ax.set_title(f"Ablation: {sweep_name.replace('_', ' ').title()}", fontsize=12, fontweight="bold")
+        ax.set_title(
+            f"Ablation: {sweep_name.replace('_', ' ').title()}",
+            fontsize=12,
+            fontweight="bold",
+        )
         ax.set_ylim(0, 110)
         ax.legend()
 
         # Best configuration marker
         best_idx = int(np.argmax(accuracies))
-        ax.text(best_idx - w/2, accuracies[best_idx] + 1, "★ Best",
-                ha="center", va="bottom", fontsize=9, color="gold", fontweight="bold")
+        ax.text(
+            best_idx - w / 2,
+            accuracies[best_idx] + 1,
+            "★ Best",
+            ha="center",
+            va="bottom",
+            fontsize=9,
+            color="gold",
+            fontweight="bold",
+        )
 
     plt.suptitle("Ablation Study Results", fontsize=14, fontweight="bold")
     plt.tight_layout()
@@ -366,6 +486,7 @@ def plot_ablation_results(
 # ─────────────────────────────────────────────
 # Architecture Comparison
 # ─────────────────────────────────────────────
+
 
 def plot_architecture_comparison(save_dir: str = "docs/figures") -> plt.Figure:
     """
@@ -387,35 +508,67 @@ def plot_architecture_comparison(save_dir: str = "docs/figures") -> plt.Figure:
     colors = ["#3498db", "#e74c3c", "#27ae60", "#f39c12"]
 
     # Accuracy comparison
-    bars = axes[0].bar(archs, [a * 100 for a in accuracy], color=colors, alpha=0.85, edgecolor="white")
+    bars = axes[0].bar(
+        archs, [a * 100 for a in accuracy], color=colors, alpha=0.85, edgecolor="white"
+    )
     axes[0].set_title("Validation Accuracy", fontweight="bold", fontsize=12)
     axes[0].set_ylabel("Accuracy (%)")
     axes[0].set_ylim(70, 100)
     axes[0].set_xticklabels(archs, rotation=20, ha="right")
     for bar, acc in zip(bars, accuracy):
-        axes[0].text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.2,
-                     f"{acc:.1%}", ha="center", va="bottom", fontsize=9, fontweight="bold")
+        axes[0].text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height() + 0.2,
+            f"{acc:.1%}",
+            ha="center",
+            va="bottom",
+            fontsize=9,
+            fontweight="bold",
+        )
 
     # Parameters vs Accuracy scatter
-    scatter = axes[1].scatter(params_m, [a * 100 for a in accuracy],
-                              c=colors, s=200, alpha=0.9, edgecolors="white", linewidths=2)
+    scatter = axes[1].scatter(
+        params_m,
+        [a * 100 for a in accuracy],
+        c=colors,
+        s=200,
+        alpha=0.9,
+        edgecolors="white",
+        linewidths=2,
+    )
     for i, arch in enumerate(archs):
-        axes[1].annotate(arch, (params_m[i], accuracy[i] * 100),
-                         textcoords="offset points", xytext=(5, 5), fontsize=9)
+        axes[1].annotate(
+            arch,
+            (params_m[i], accuracy[i] * 100),
+            textcoords="offset points",
+            xytext=(5, 5),
+            fontsize=9,
+        )
     axes[1].set_title("Accuracy vs. Parameters", fontweight="bold", fontsize=12)
     axes[1].set_xlabel("Parameters (M)")
     axes[1].set_ylabel("Accuracy (%)")
 
     # Inference time
-    bars3 = axes[2].bar(archs, inference_ms, color=colors, alpha=0.85, edgecolor="white")
+    bars3 = axes[2].bar(
+        archs, inference_ms, color=colors, alpha=0.85, edgecolor="white"
+    )
     axes[2].set_title("Inference Time (ms/image)", fontweight="bold", fontsize=12)
     axes[2].set_ylabel("Time (ms)")
     axes[2].set_xticklabels(archs, rotation=20, ha="right")
     for bar, ms in zip(bars3, inference_ms):
-        axes[2].text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.2,
-                     f"{ms}ms", ha="center", va="bottom", fontsize=9, fontweight="bold")
+        axes[2].text(
+            bar.get_x() + bar.get_width() / 2,
+            bar.get_height() + 0.2,
+            f"{ms}ms",
+            ha="center",
+            va="bottom",
+            fontsize=9,
+            fontweight="bold",
+        )
 
-    plt.suptitle("Architecture Comparison — Ablation Study", fontsize=14, fontweight="bold")
+    plt.suptitle(
+        "Architecture Comparison — Ablation Study", fontsize=14, fontweight="bold"
+    )
     plt.tight_layout()
     save_path = Path(save_dir) / "architecture_comparison.png"
     plt.savefig(save_path, bbox_inches="tight", dpi=150)
@@ -426,7 +579,10 @@ def plot_architecture_comparison(save_dir: str = "docs/figures") -> plt.Figure:
 # Class Distribution
 # ─────────────────────────────────────────────
 
-def plot_class_distribution(data_stats: Dict, save_dir: str = "docs/figures") -> plt.Figure:
+
+def plot_class_distribution(
+    data_stats: Dict, save_dir: str = "docs/figures"
+) -> plt.Figure:
     """Visualize class distribution across splits."""
     Path(save_dir).mkdir(parents=True, exist_ok=True)
 
@@ -445,16 +601,25 @@ def plot_class_distribution(data_stats: Dict, save_dir: str = "docs/figures") ->
         names = list(per_class.keys())
         counts = list(per_class.values())
         short_names = [n.split("(")[0].strip()[:15] for n in names]
-        bar_colors = [RISK_COLORS.get(name.split("(")[0].strip(), "#95a5a6") for name in names]
+        bar_colors = [
+            RISK_COLORS.get(name.split("(")[0].strip(), "#95a5a6") for name in names
+        ]
 
-        ax.bar(range(len(names)), counts, color=bar_colors, alpha=0.85, edgecolor="white")
+        ax.bar(
+            range(len(names)), counts, color=bar_colors, alpha=0.85, edgecolor="white"
+        )
         ax.set_xticks(range(len(short_names)))
         ax.set_xticklabels(short_names, rotation=45, ha="right", fontsize=8)
-        ax.set_title(f"{split.upper()} Set Distribution\n(total: {data_stats[split]['total']:,})",
-                     fontweight="bold", fontsize=11)
+        ax.set_title(
+            f"{split.upper()} Set Distribution\n(total: {data_stats[split]['total']:,})",
+            fontweight="bold",
+            fontsize=11,
+        )
         ax.set_ylabel("Sample Count")
 
-    plt.suptitle("Dataset Class Distribution Across Splits", fontsize=13, fontweight="bold")
+    plt.suptitle(
+        "Dataset Class Distribution Across Splits", fontsize=13, fontweight="bold"
+    )
     plt.tight_layout()
     save_path = Path(save_dir) / "class_distribution.png"
     plt.savefig(save_path, bbox_inches="tight", dpi=150)
@@ -464,6 +629,7 @@ def plot_class_distribution(data_stats: Dict, save_dir: str = "docs/figures") ->
 # ─────────────────────────────────────────────
 # Full Dashboard
 # ─────────────────────────────────────────────
+
 
 def generate_full_report(
     history_path: Optional[str] = None,
@@ -525,15 +691,17 @@ if __name__ == "__main__":
         lr = 1e-3 * (0.5 ** (e // 5))
         train_acc = min(0.98, 0.4 + 0.03 * e + np.random.normal(0, 0.01))
         val_acc = min(0.95, 0.35 + 0.028 * e + np.random.normal(0, 0.015))
-        history.append({
-            "epoch": e + 1,
-            "train_loss": max(0.05, 2.0 - 0.08 * e + np.random.normal(0, 0.05)),
-            "val_loss": max(0.08, 2.1 - 0.07 * e + np.random.normal(0, 0.07)),
-            "train_acc": train_acc,
-            "val_acc": val_acc,
-            "val_f1": val_acc * 0.97,
-            "lr": lr,
-        })
+        history.append(
+            {
+                "epoch": e + 1,
+                "train_loss": max(0.05, 2.0 - 0.08 * e + np.random.normal(0, 0.05)),
+                "val_loss": max(0.08, 2.1 - 0.07 * e + np.random.normal(0, 0.07)),
+                "train_acc": train_acc,
+                "val_acc": val_acc,
+                "val_f1": val_acc * 0.97,
+                "lr": lr,
+            }
+        )
 
     history_path = "/tmp/demo_history.json"
     with open(history_path, "w") as f:

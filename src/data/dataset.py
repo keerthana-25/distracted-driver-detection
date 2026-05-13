@@ -54,6 +54,7 @@ IDX_TO_NAME = {i: CLASS_NAMES[c] for c, i in CLASS_TO_IDX.items()}
 # Transforms
 # ─────────────────────────────────────────────
 
+
 def get_train_transforms(image_size: int = 224) -> transforms.Compose:
     """
     Training transforms with aggressive augmentation to reduce overfitting.
@@ -65,17 +66,21 @@ def get_train_transforms(image_size: int = 224) -> transforms.Compose:
     - RandomErasing: forces model to not rely on single features
     - Normalize: ImageNet statistics (pretrained backbone requirement)
     """
-    return transforms.Compose([
-        transforms.Resize((image_size + 32, image_size + 32)),
-        transforms.RandomCrop(image_size),
-        transforms.RandomHorizontalFlip(p=0.5),
-        transforms.RandomRotation(degrees=15),
-        transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.2, hue=0.1),
-        transforms.RandomAffine(degrees=10, translate=(0.1, 0.1)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        transforms.RandomErasing(p=0.2, scale=(0.02, 0.1)),
-    ])
+    return transforms.Compose(
+        [
+            transforms.Resize((image_size + 32, image_size + 32)),
+            transforms.RandomCrop(image_size),
+            transforms.RandomHorizontalFlip(p=0.5),
+            transforms.RandomRotation(degrees=15),
+            transforms.ColorJitter(
+                brightness=0.3, contrast=0.3, saturation=0.2, hue=0.1
+            ),
+            transforms.RandomAffine(degrees=10, translate=(0.1, 0.1)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            transforms.RandomErasing(p=0.2, scale=(0.02, 0.1)),
+        ]
+    )
 
 
 def get_val_transforms(image_size: int = 224) -> transforms.Compose:
@@ -83,12 +88,14 @@ def get_val_transforms(image_size: int = 224) -> transforms.Compose:
     Validation/Test transforms - no augmentation, only resize + normalize.
     We use center crop to ensure consistent evaluation.
     """
-    return transforms.Compose([
-        transforms.Resize((image_size + 32, image_size + 32)),
-        transforms.CenterCrop(image_size),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    ])
+    return transforms.Compose(
+        [
+            transforms.Resize((image_size + 32, image_size + 32)),
+            transforms.CenterCrop(image_size),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        ]
+    )
 
 
 def get_inference_transforms(image_size: int = 224) -> transforms.Compose:
@@ -99,6 +106,7 @@ def get_inference_transforms(image_size: int = 224) -> transforms.Compose:
 # ─────────────────────────────────────────────
 # Dataset Class
 # ─────────────────────────────────────────────
+
 
 class DistractedDriverDataset(Dataset):
     """
@@ -220,6 +228,7 @@ class DistractedDriverDataset(Dataset):
 # Data Splitting
 # ─────────────────────────────────────────────
 
+
 def split_dataset(
     source_dir: str,
     output_dir: str,
@@ -236,7 +245,9 @@ def split_dataset(
 
     Returns dict with counts per split.
     """
-    assert abs(train_ratio + val_ratio + test_ratio - 1.0) < 1e-6, "Ratios must sum to 1"
+    assert (
+        abs(train_ratio + val_ratio + test_ratio - 1.0) < 1e-6
+    ), "Ratios must sum to 1"
 
     source_dir = Path(source_dir)
     output_dir = Path(output_dir)
@@ -257,17 +268,19 @@ def split_dataset(
 
     # Stratified split: first split off test, then split train/val
     X_trainval, X_test, y_trainval, y_test = train_test_split(
-        all_images, all_labels,
+        all_images,
+        all_labels,
         test_size=test_ratio,
         stratify=all_labels,
-        random_state=random_seed
+        random_state=random_seed,
     )
     val_ratio_adjusted = val_ratio / (train_ratio + val_ratio)
     X_train, X_val, y_train, y_val = train_test_split(
-        X_trainval, y_trainval,
+        X_trainval,
+        y_trainval,
         test_size=val_ratio_adjusted,
         stratify=y_trainval,
-        random_state=random_seed
+        random_state=random_seed,
     )
 
     splits = {
@@ -292,12 +305,14 @@ def split_dataset(
 
     # Save manifest CSVs
     for split_name, (images, labels) in splits.items():
-        df = pd.DataFrame({
-            "image_path": [str(p) for p in images],
-            "label": labels,
-            "class_name": [IDX_TO_CLASS[l] for l in labels],
-            "class_label": [CLASS_NAMES[IDX_TO_CLASS[l]] for l in labels],
-        })
+        df = pd.DataFrame(
+            {
+                "image_path": [str(p) for p in images],
+                "label": labels,
+                "class_name": [IDX_TO_CLASS[l] for l in labels],
+                "class_label": [CLASS_NAMES[IDX_TO_CLASS[l]] for l in labels],
+            }
+        )
         df.to_csv(output_dir / f"{split_name}_manifest.csv", index=False)
 
     return counts
@@ -306,6 +321,7 @@ def split_dataset(
 # ─────────────────────────────────────────────
 # DataLoader Factory
 # ─────────────────────────────────────────────
+
 
 def create_dataloaders(
     data_dir: str,
@@ -330,16 +346,19 @@ def create_dataloaders(
 
     datasets = {
         "train": DistractedDriverDataset(
-            str(data_dir), split="train",
+            str(data_dir),
+            split="train",
             transform=get_train_transforms(image_size),
             use_cache=use_cache,
         ),
         "val": DistractedDriverDataset(
-            str(data_dir), split="val",
+            str(data_dir),
+            split="val",
             transform=get_val_transforms(image_size),
         ),
         "test": DistractedDriverDataset(
-            str(data_dir), split="test",
+            str(data_dir),
+            split="test",
             transform=get_val_transforms(image_size),
         ),
     }
@@ -371,8 +390,10 @@ def create_dataloaders(
             )
 
     for split, loader in loaders.items():
-        logger.info(f"[{split}] {len(loader.dataset)} samples, "
-                    f"{len(loader)} batches (batch_size={batch_size})")
+        logger.info(
+            f"[{split}] {len(loader.dataset)} samples, "
+            f"{len(loader)} batches (batch_size={batch_size})"
+        )
 
     return loaders
 
@@ -380,6 +401,7 @@ def create_dataloaders(
 # ─────────────────────────────────────────────
 # Synthetic Data Generator (for testing / CI)
 # ─────────────────────────────────────────────
+
 
 def generate_synthetic_dataset(output_dir: str, samples_per_class: int = 20) -> str:
     """
@@ -406,15 +428,20 @@ def generate_synthetic_dataset(output_dir: str, samples_per_class: int = 20) -> 
 
                 # Add class-specific color tint
                 class_idx = CLASS_TO_IDX[class_name]
-                base_color = np.array([
-                    (class_idx * 25) % 255,
-                    (class_idx * 50 + 100) % 255,
-                    (class_idx * 75 + 50) % 255,
-                ], dtype=np.uint8)
+                base_color = np.array(
+                    [
+                        (class_idx * 25) % 255,
+                        (class_idx * 50 + 100) % 255,
+                        (class_idx * 75 + 50) % 255,
+                    ],
+                    dtype=np.uint8,
+                )
 
                 img_array[:] = base_color
                 noise = rng.randint(0, 50, (224, 224, 3), dtype=np.uint8)
-                img_array = np.clip(img_array.astype(int) + noise - 25, 0, 255).astype(np.uint8)
+                img_array = np.clip(img_array.astype(int) + noise - 25, 0, 255).astype(
+                    np.uint8
+                )
 
                 img = Image.fromarray(img_array)
                 img.save(split_class_dir / f"{class_name}_{i:04d}.jpg")
@@ -426,6 +453,7 @@ def generate_synthetic_dataset(output_dir: str, samples_per_class: int = 20) -> 
 # ─────────────────────────────────────────────
 # Dataset Statistics
 # ─────────────────────────────────────────────
+
 
 def compute_dataset_statistics(data_dir: str) -> Dict:
     """Compute and return dataset statistics for logging/reporting."""
@@ -440,7 +468,9 @@ def compute_dataset_statistics(data_dir: str) -> Dict:
         for class_name in CLASS_TO_IDX:
             class_dir = split_dir / class_name
             if class_dir.exists():
-                n = len(list(class_dir.glob("*.jpg"))) + len(list(class_dir.glob("*.png")))
+                n = len(list(class_dir.glob("*.jpg"))) + len(
+                    list(class_dir.glob("*.png"))
+                )
                 counts[CLASS_NAMES[class_name]] = n
                 total += n
         stats[split] = {"total": total, "per_class": counts}

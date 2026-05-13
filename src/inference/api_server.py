@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 # App Factory
 # ─────────────────────────────────────────────
 
+
 def create_app(model_path: str = None, architecture: str = "efficientnet_b3") -> Flask:
     """Create and configure Flask application."""
     app = Flask(__name__)
@@ -73,15 +74,40 @@ app = create_app(
 
 CLASS_DEFINITIONS = {
     0: {"code": "c0", "name": "Safe Driving", "risk": "none", "color": "#27ae60"},
-    1: {"code": "c1", "name": "Texting (Right Hand)", "risk": "high", "color": "#e74c3c"},
-    2: {"code": "c2", "name": "Phone Call (Right Hand)", "risk": "high", "color": "#e74c3c"},
-    3: {"code": "c3", "name": "Texting (Left Hand)", "risk": "high", "color": "#e74c3c"},
-    4: {"code": "c4", "name": "Phone Call (Left Hand)", "risk": "high", "color": "#e74c3c"},
+    1: {
+        "code": "c1",
+        "name": "Texting (Right Hand)",
+        "risk": "high",
+        "color": "#e74c3c",
+    },
+    2: {
+        "code": "c2",
+        "name": "Phone Call (Right Hand)",
+        "risk": "high",
+        "color": "#e74c3c",
+    },
+    3: {
+        "code": "c3",
+        "name": "Texting (Left Hand)",
+        "risk": "high",
+        "color": "#e74c3c",
+    },
+    4: {
+        "code": "c4",
+        "name": "Phone Call (Left Hand)",
+        "risk": "high",
+        "color": "#e74c3c",
+    },
     5: {"code": "c5", "name": "Radio Adjusting", "risk": "medium", "color": "#f39c12"},
     6: {"code": "c6", "name": "Drinking", "risk": "medium", "color": "#f39c12"},
     7: {"code": "c7", "name": "Reaching Behind", "risk": "high", "color": "#e74c3c"},
     8: {"code": "c8", "name": "Hair / Makeup", "risk": "medium", "color": "#f39c12"},
-    9: {"code": "c9", "name": "Talking to Passenger", "risk": "low", "color": "#3498db"},
+    9: {
+        "code": "c9",
+        "name": "Talking to Passenger",
+        "risk": "low",
+        "color": "#3498db",
+    },
 }
 
 
@@ -112,14 +138,17 @@ def parse_image_from_request() -> Image.Image:
 # Routes
 # ─────────────────────────────────────────────
 
+
 @app.route("/health", methods=["GET"])
 def health():
-    return jsonify({
-        "status": "healthy" if app.model_loaded else "degraded",
-        "model_loaded": app.model_loaded,
-        "device": str(torch.device("cuda" if torch.cuda.is_available() else "cpu")),
-        "timestamp": time.time(),
-    })
+    return jsonify(
+        {
+            "status": "healthy" if app.model_loaded else "degraded",
+            "model_loaded": app.model_loaded,
+            "device": str(torch.device("cuda" if torch.cuda.is_available() else "cpu")),
+            "timestamp": time.time(),
+        }
+    )
 
 
 @app.route("/classes", methods=["GET"])
@@ -129,12 +158,14 @@ def get_classes():
 
 @app.route("/model/info", methods=["GET"])
 def model_info():
-    return jsonify({
-        "architecture": getattr(app, "architecture", "unknown"),
-        "num_classes": 10,
-        "model_path": getattr(app, "model_path", "unknown"),
-        "class_definitions": CLASS_DEFINITIONS,
-    })
+    return jsonify(
+        {
+            "architecture": getattr(app, "architecture", "unknown"),
+            "num_classes": 10,
+            "model_path": getattr(app, "model_path", "unknown"),
+            "class_definitions": CLASS_DEFINITIONS,
+        }
+    )
 
 
 @app.route("/predict", methods=["POST"])
@@ -223,22 +254,26 @@ def predict_batch():
     for fname, result in zip(filenames, results):
         pred_class = result["predicted_class"]
         class_def = CLASS_DEFINITIONS.get(pred_class, {})
-        response.append({
-            "filename": fname,
-            "predicted_class": pred_class,
-            "predicted_label": result["predicted_label"],
-            "confidence": round(result["confidence"], 4),
-            "is_distracted": result["is_distracted"],
-            "risk_level": class_def.get("risk", "unknown"),
-        })
+        response.append(
+            {
+                "filename": fname,
+                "predicted_class": pred_class,
+                "predicted_label": result["predicted_label"],
+                "confidence": round(result["confidence"], 4),
+                "is_distracted": result["is_distracted"],
+                "risk_level": class_def.get("risk", "unknown"),
+            }
+        )
 
     distracted_count = sum(1 for r in response if r["is_distracted"])
-    return jsonify({
-        "predictions": response,
-        "total": len(response),
-        "distracted_count": distracted_count,
-        "distracted_percentage": round(distracted_count / len(response) * 100, 1),
-    })
+    return jsonify(
+        {
+            "predictions": response,
+            "total": len(response),
+            "distracted_count": distracted_count,
+            "distracted_percentage": round(distracted_count / len(response) * 100, 1),
+        }
+    )
 
 
 if __name__ == "__main__":
