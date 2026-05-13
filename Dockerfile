@@ -1,7 +1,7 @@
 FROM python:3.10-slim
 
 # System dependencies
-RUN apt-get update --fix-missing && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 \
     libglib2.0-0 \
     libsm6 \
