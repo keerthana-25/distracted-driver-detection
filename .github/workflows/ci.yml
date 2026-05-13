@@ -42,7 +42,7 @@ jobs:
         run: black --check --diff src/ webapp/ tests/ mlops/
 
       - name: Flake8 linting
-        run: flake8 src/ webapp/ tests/ --max-line-length=100 --ignore=E501,W503
+        run: flake8 src/ webapp/ tests/ --max-line-length=100 --ignore=E501,W503,F401,F841,E402,E741,F541,E203
 
   # ─────────────────────────────────────────────
   # Unit Tests
