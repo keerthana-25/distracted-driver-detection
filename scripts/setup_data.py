@@ -36,11 +36,16 @@ def setup_kaggle(output_dir: str = "data"):
 
     result = subprocess.run(
         [
-            "kaggle", "competitions", "download",
-            "-c", "state-farm-distracted-driver-detection",
-            "-p", str(raw_dir),
+            "kaggle",
+            "competitions",
+            "download",
+            "-c",
+            "state-farm-distracted-driver-detection",
+            "-p",
+            str(raw_dir),
         ],
-        capture_output=True, text=True,
+        capture_output=True,
+        text=True,
     )
 
     if result.returncode != 0:
@@ -67,7 +72,9 @@ def setup_synthetic(output_dir: str = "data", n_per_class: int = 50):
     from src.data.dataset import generate_synthetic_dataset
 
     logger.info(f"Generating synthetic dataset ({n_per_class} samples/class)...")
-    data_dir = generate_synthetic_dataset(str(Path(output_dir) / "synthetic"), n_per_class)
+    data_dir = generate_synthetic_dataset(
+        str(Path(output_dir) / "synthetic"), n_per_class
+    )
     logger.info(f"Synthetic dataset ready at: {data_dir}")
     return data_dir
 
@@ -104,10 +111,16 @@ def split_and_process(raw_dir: str, processed_dir: str = "data/processed"):
 def main():
     parser = argparse.ArgumentParser(description="Setup distracted driver dataset")
     parser.add_argument("--kaggle", action="store_true", help="Download from Kaggle")
-    parser.add_argument("--synthetic", action="store_true", help="Generate synthetic dataset")
-    parser.add_argument("--n", type=int, default=50, help="Samples per class (synthetic)")
+    parser.add_argument(
+        "--synthetic", action="store_true", help="Generate synthetic dataset"
+    )
+    parser.add_argument(
+        "--n", type=int, default=50, help="Samples per class (synthetic)"
+    )
     parser.add_argument("--data-dir", default="data", help="Data directory")
-    parser.add_argument("--skip-split", action="store_true", help="Skip train/val/test split")
+    parser.add_argument(
+        "--skip-split", action="store_true", help="Skip train/val/test split"
+    )
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
@@ -125,7 +138,9 @@ def main():
                 str(Path(args.data_dir) / "processed"),
             )
             logger.info(f"\n✅ Processed data ready at: {processed_dir}")
-            logger.info("Run training with: python mlops/pipelines/pipeline.py --config configs/config.yaml")
+            logger.info(
+                "Run training with: python mlops/pipelines/pipeline.py --config configs/config.yaml"
+            )
     else:
         parser.print_help()
 

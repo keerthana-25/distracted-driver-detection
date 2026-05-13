@@ -38,19 +38,41 @@ def parse_args():
         description="Train Distracted Driver Detection model",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("--config", default="configs/config.yaml", help="YAML config file")
-    parser.add_argument("--data-dir", default=None, help="Override data directory from config")
-    parser.add_argument("--synthetic", action="store_true", help="Use synthetic dataset (no Kaggle needed)")
-    parser.add_argument("--architecture", default=None, help="Backbone architecture override")
-    parser.add_argument("--epochs", type=int, default=None, help="Number of training epochs")
+    parser.add_argument(
+        "--config", default="configs/config.yaml", help="YAML config file"
+    )
+    parser.add_argument(
+        "--data-dir", default=None, help="Override data directory from config"
+    )
+    parser.add_argument(
+        "--synthetic",
+        action="store_true",
+        help="Use synthetic dataset (no Kaggle needed)",
+    )
+    parser.add_argument(
+        "--architecture", default=None, help="Backbone architecture override"
+    )
+    parser.add_argument(
+        "--epochs", type=int, default=None, help="Number of training epochs"
+    )
     parser.add_argument("--batch-size", type=int, default=None, help="Batch size")
     parser.add_argument("--lr", type=float, default=None, help="Learning rate")
     parser.add_argument("--dropout", type=float, default=None, help="Dropout rate")
-    parser.add_argument("--output-dir", default="models", help="Directory to save checkpoints")
+    parser.add_argument(
+        "--output-dir", default="models", help="Directory to save checkpoints"
+    )
     parser.add_argument("--run-name", default=None, help="MLflow run name")
-    parser.add_argument("--ablation", action="store_true", help="Run ablation study after training")
-    parser.add_argument("--no-pretrained", action="store_true", help="Train from scratch (no ImageNet weights)")
-    parser.add_argument("--workers", type=int, default=4, help="DataLoader worker processes")
+    parser.add_argument(
+        "--ablation", action="store_true", help="Run ablation study after training"
+    )
+    parser.add_argument(
+        "--no-pretrained",
+        action="store_true",
+        help="Train from scratch (no ImageNet weights)",
+    )
+    parser.add_argument(
+        "--workers", type=int, default=4, help="DataLoader worker processes"
+    )
     return parser.parse_args()
 
 
@@ -94,7 +116,9 @@ def main():
     # ── Data ──
     if args.synthetic:
         logger.info("Generating synthetic dataset for training...")
-        data_dir = generate_synthetic_dataset("data/synthetic_train", samples_per_class=60)
+        data_dir = generate_synthetic_dataset(
+            "data/synthetic_train", samples_per_class=60
+        )
         config.data_dir = data_dir
         config.num_workers = 0
     elif args.data_dir:

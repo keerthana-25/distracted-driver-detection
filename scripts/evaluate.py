@@ -51,7 +51,9 @@ def main():
 
     # Data
     if args.synthetic:
-        data_dir = generate_synthetic_dataset("data/eval_synthetic", samples_per_class=30)
+        data_dir = generate_synthetic_dataset(
+            "data/eval_synthetic", samples_per_class=30
+        )
     else:
         data_dir = args.data_dir
 
@@ -91,8 +93,12 @@ def main():
     print("\n" + "=" * 55)
     print("TEST SET EVALUATION RESULTS")
     print("=" * 55)
-    print(f"  Top-1 Accuracy  : {results['accuracy_top1']:.4f} ({results['accuracy_top1']*100:.2f}%)")
-    print(f"  Top-3 Accuracy  : {results['accuracy_top3']:.4f} ({results['accuracy_top3']*100:.2f}%)")
+    print(
+        f"  Top-1 Accuracy  : {results['accuracy_top1']:.4f} ({results['accuracy_top1']*100:.2f}%)"
+    )
+    print(
+        f"  Top-3 Accuracy  : {results['accuracy_top3']:.4f} ({results['accuracy_top3']*100:.2f}%)"
+    )
     print(f"  F1 Macro        : {results['f1_macro']:.4f}")
     print(f"  Precision Macro : {results['precision_macro']:.4f}")
     print(f"  Recall Macro    : {results['recall_macro']:.4f}")
@@ -100,7 +106,7 @@ def main():
     print(f"  Test Loss       : {results['test_loss']:.4f}")
     print()
     print("  Per-Class Accuracy:")
-    for i, acc in enumerate(results['per_class_accuracy']):
+    for i, acc in enumerate(results["per_class_accuracy"]):
         bar = "█" * int(acc * 20)
         print(f"    [{i}] {IDX_TO_NAME.get(i, '?'):25s} {acc:.3f}  {bar}")
     print("=" * 55)

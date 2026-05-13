@@ -329,6 +329,7 @@ class Trainer:
         logger.info(f"TensorBoard logs: {tb_dir}")
         try:
             from torch.utils.tensorboard import SummaryWriter
+
             self.writer = SummaryWriter(str(tb_dir))
         except ImportError:
             logger.warning("TensorBoard not available. Skipping TB logging.")
