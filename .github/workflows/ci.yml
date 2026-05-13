@@ -76,7 +76,7 @@ jobs:
             -k "not test_minimal_training"
 
       - name: Upload coverage report
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           file: coverage.xml
           fail_ci_if_error: false
@@ -121,7 +121,7 @@ jobs:
           "
 
       - name: Upload MLflow artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: mlflow-artifacts
           path: mlruns/
@@ -153,14 +153,14 @@ jobs:
             --synthetic
 
       - name: Upload trained model
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: trained-model
           path: models/
           retention-days: 30
 
       - name: Upload training figures
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: training-figures
           path: docs/figures/
@@ -193,7 +193,7 @@ jobs:
             --run-ablation
 
       - name: Upload ablation results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ablation-results
           path: mlops/ablation_results.json
