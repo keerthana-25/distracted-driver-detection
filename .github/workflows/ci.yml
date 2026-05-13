@@ -105,6 +105,9 @@ jobs:
           pip install flask flask-cors opencv-python pyyaml tqdm
 
       - name: Run synthetic pipeline
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          MLFLOW_TRACKING_URI: sqlite:///mlflow.db
         run: |
           python mlops/pipelines/pipeline.py \
             --config configs/config.yaml \
@@ -112,6 +115,8 @@ jobs:
             --skip-training
 
       - name: Verify MLflow artifacts
+        env:
+          MLFLOW_TRACKING_URI: sqlite:///mlflow.db
         run: |
           python -c "
           import mlflow
