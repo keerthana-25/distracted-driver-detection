@@ -1,4 +1,8 @@
+# .gitignore
 models/
 mlruns/
 *.zip
-data/
+data/i
+.env
+__pycache__/
+

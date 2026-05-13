@@ -44,11 +44,23 @@ CLASS_DEFINITIONS = {
 
 def load_predictor(model_path=None, architecture="efficientnet_b3"):
     model = create_model(architecture, pretrained=False, device=DEVICE)
+
     if model_path and Path(model_path).exists():
         model = load_checkpoint(model, model_path, DEVICE)
-        logger.info(f"Loaded checkpoint: {model_path}")
     else:
-        logger.warning("No checkpoint — using random weights (demo mode).")
+        # Download from HuggingFace if not local
+        try:
+            from huggingface_hub import hf_hub_download
+            downloaded = hf_hub_download(
+                repo_id="keerthana-25/distracted-driver-detection",
+                filename="models/best_model.pth",
+                repo_type="space",
+            )
+            model = load_checkpoint(model, downloaded, DEVICE)
+            logger.info("Model loaded from HuggingFace")
+        except Exception as e:
+            logger.warning(f"Could not load model: {e}. Using random weights.")
+
     return ExplainablePredictor(model, device=DEVICE)
 
 

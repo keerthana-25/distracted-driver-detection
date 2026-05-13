@@ -9,10 +9,15 @@ import tempfile
 from pathlib import Path
 
 from huggingface_hub import HfApi, create_repo
+import os
+from dotenv import load_dotenv
 
-HF_TOKEN = os.environ.get("HF_TOKEN")
-HF_USERNAME = os.environ.get("HF_USERNAME", "your-username")
-SPACE_NAME = "distracted-driver-detection"
+# Load variables from .env
+load_dotenv()
+
+HF_TOKEN = os.getenv("HF_TOKEN")
+HF_USERNAME = os.getenv("HF_USERNAME")
+SPACE_NAME = os.getenv("SPACE_NAME")
 REPO_ID = f"{HF_USERNAME}/{SPACE_NAME}"
 
 ROOT = Path(__file__).parent.parent
