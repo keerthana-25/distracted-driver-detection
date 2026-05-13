@@ -6,16 +6,13 @@ Pushes the Gradio webapp to HF Spaces for public demo.
 import os
 import shutil
 import tempfile
-from dotenv import load_dotenv
 from pathlib import Path
+
 from huggingface_hub import HfApi, create_repo
 
-# Load variables from .env
-load_dotenv()
-
-HF_TOKEN = os.getenv("HF_TOKEN")
-HF_USERNAME = os.getenv("HF_USERNAME")
-SPACE_NAME = os.getenv("SPACE_NAME")
+HF_TOKEN = os.environ.get("HF_TOKEN")
+HF_USERNAME = os.environ.get("HF_USERNAME", "your-username")
+SPACE_NAME = "distracted-driver-detection"
 REPO_ID = f"{HF_USERNAME}/{SPACE_NAME}"
 
 ROOT = Path(__file__).parent.parent
