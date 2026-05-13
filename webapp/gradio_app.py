@@ -329,7 +329,7 @@ def build_interface():
 
 ## Training Strategy
 
-**Phase 1 (epochs 1–3):** Backbone frozen → train head only  
+**Phase 1 (epochs 1–3):** Backbone frozen → train head only
 **Phase 2 (epoch 4+):** Unfreeze backbone with 10× lower LR
 
 ## Results

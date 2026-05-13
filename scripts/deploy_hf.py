@@ -6,11 +6,10 @@ Pushes the Gradio webapp to HF Spaces for public demo.
 import os
 import shutil
 import tempfile
-from pathlib import Path
-
-from huggingface_hub import HfApi, create_repo
-import os
 from dotenv import load_dotenv
+from pathlib import Path
+from huggingface_hub import HfApi, create_repo
+
 
 # Load variables from .env
 load_dotenv()
