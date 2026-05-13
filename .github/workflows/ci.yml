@@ -73,8 +73,7 @@ jobs:
             --cov=src \
             --cov-report=xml \
             --cov-report=term-missing \
-            -k "not test_minimal_training" \
-            --timeout=120
+            -k "not test_minimal_training"
 
       - name: Upload coverage report
         uses: codecov/codecov-action@v3
@@ -101,7 +100,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-          pip install timm torchmetrics mlflow
+          pip install timm torchmetrics mlflow pytest pytest-cov pytest-timeout
           pip install numpy pandas scikit-learn Pillow matplotlib seaborn
           pip install flask flask-cors opencv-python pyyaml tqdm
 
