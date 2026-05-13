@@ -37,6 +37,11 @@ import numpy as np
 from tqdm import tqdm
 import yaml
 
+try:
+    from torch.utils.tensorboard import SummaryWriter
+except ImportError:
+    SummaryWriter = None
+
 # Local imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from src.model.architecture import (
@@ -213,7 +218,7 @@ def train_one_epoch(
     scaler: GradScaler,
     config: TrainingConfig,
     epoch: int,
-    writer: SummaryWriter,
+    writer,
     device: torch.device,
 ) -> Dict:
     """Run one training epoch with AMP, gradient accumulation, and clipping."""
@@ -325,13 +330,10 @@ class Trainer:
 
         # TensorBoard writer
         tb_dir = Path("runs") / config.experiment_name / (config.run_name or "default")
-        self.writer = SummaryWriter(str(tb_dir))
-        logger.info(f"TensorBoard logs: {tb_dir}")
-        try:
-            from torch.utils.tensorboard import SummaryWriter
-
+        if SummaryWriter is not None:
             self.writer = SummaryWriter(str(tb_dir))
-        except ImportError:
+            logger.info(f"TensorBoard logs: {tb_dir}")
+        else:
             logger.warning("TensorBoard not available. Skipping TB logging.")
             self.writer = None
 
