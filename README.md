@@ -8,6 +8,7 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-ee4c2c.svg)](https://pytorch.org)
 [![MLflow](https://img.shields.io/badge/MLflow-tracked-0194e2.svg)](https://mlflow.org)
 [![HuggingFace](https://img.shields.io/badge/Demo-HuggingFace%20Spaces-yellow)](https://huggingface.co/spaces/keerthana-m/distracted-driver-detection)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/keerthana-25/distracted-driver-detection/blob/main/notebooks/train_on_colab.ipynb)
 
 ---
 
@@ -19,6 +20,7 @@
 | 💻 **GitHub Repo** | [github.com/keerthana-25/distracted-driver-detection](https://github.com/keerthana-25/distracted-driver-detection) |
 | ⚙️ **CI/CD Pipeline** | [GitHub Actions](https://github.com/keerthana-25/distracted-driver-detection/actions) |
 | 📊 **MLflow Dashboard** | Run `mlflow ui` locally after training |
+| 📓 **Colab Notebook** | [Train on Google Colab (free T4 GPU)](https://colab.research.google.com/github/keerthana-25/distracted-driver-detection/blob/main/notebooks/train_on_colab.ipynb) |
 
 ---
 
@@ -96,7 +98,8 @@ distracted-driver-detection/
 │   └── pipelines/
 │       └── pipeline.py         # End-to-end ML pipeline orchestrator
 ├── notebooks/
-│   └── ablation_study.ipynb    # Interactive analysis notebook
+│   ├── train_on_colab.ipynb    # ⭐ Full training pipeline for Google Colab (T4 GPU)
+│   └── ablation_study.ipynb    # Ablation study + Grad-CAM analysis
 ├── scripts/
 │   ├── train.py                # Training CLI entry point
 │   ├── evaluate.py             # Test set evaluation + reports
@@ -239,6 +242,44 @@ Output: 10-class logits
 | EfficientNet-B0 | 5.3M | ~12ms | Ablation baseline |
 | ResNet-50 | 25.6M | ~28ms | Ablation comparison |
 | MobileNetV3-Large | 5.4M | ~8ms | Edge deployment |
+
+---
+
+## Training on Google Colab (Recommended)
+
+Training on CPU takes ~15 hours. Google Colab gives you a **free T4 GPU** and reduces this to **~45 minutes**.
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/keerthana-25/distracted-driver-detection/notebooks/train_on_colab.ipynb)
+
+**File:** `notebooks/train_on_colab.ipynb`
+
+### How to use
+
+1. Click the **Open in Colab** badge above
+2. Go to **Runtime → Change runtime type → T4 GPU**
+3. Run all cells from top to bottom
+4. In Step 4 choose how to load your data:
+   - **Option A** — From Google Drive (fastest, recommended)
+   - **Option B** — From Kaggle API
+5. Download `best_model.pth` when training finishes
+
+### After training — restore files to your project
+
+```bash
+# Place model and history
+mv ~/Downloads/best_model.pth        distracted-driver-detection/models/
+mv ~/Downloads/training_history.json distracted-driver-detection/models/
+
+# Extract MLflow runs (for dashboard)
+unzip ~/Downloads/mlruns.zip -d distracted-driver-detection/
+
+# Launch local demo with trained model
+cd distracted-driver-detection
+python3 webapp/gradio_app.py
+
+# View MLflow dashboard
+mlflow ui --backend-store-uri mlruns
+```
 
 ---
 
@@ -668,9 +709,8 @@ python3 verify.py
 
 | Member | Role |
 |--------|------|
-| Keerthana Muralidharan| Model architecture + training pipeline + Web demo + API + CI/CD deployment|
+| Keerthana Muralidharan | Model architecture + training pipeline + Web demo + API + CI/CD deployment |
 | Yashashwini Dinesh | Data pipeline + MLOps infrastructure + Grad-CAM explainability + visualizations |
-
 
 ---
 
