@@ -31,7 +31,6 @@ from torch.optim.lr_scheduler import (
     OneCycleLR,
 )
 from torch.cuda.amp import GradScaler, autocast
-from torch.utils.tensorboard import SummaryWriter
 import mlflow
 import mlflow.pytorch
 import numpy as np
@@ -328,6 +327,12 @@ class Trainer:
         tb_dir = Path("runs") / config.experiment_name / (config.run_name or "default")
         self.writer = SummaryWriter(str(tb_dir))
         logger.info(f"TensorBoard logs: {tb_dir}")
+        try:
+            from torch.utils.tensorboard import SummaryWriter
+            self.writer = SummaryWriter(str(tb_dir))
+        except ImportError:
+            logger.warning("TensorBoard not available. Skipping TB logging.")
+            self.writer = None
 
         # Setup MLflow
         mlflow.set_experiment(config.experiment_name)
@@ -375,11 +380,14 @@ class Trainer:
         # TensorBoard
         for key, val in train_metrics.items():
             if isinstance(val, (int, float)):
-                self.writer.add_scalar(f"Train/{key}", val, epoch)
+                if self.writer:
+                    self.writer.add_scalar(f"Train/{key}", val, epoch)
         for key, val in val_metrics.items():
             if isinstance(val, (int, float)):
-                self.writer.add_scalar(f"Val/{key}", val, epoch)
-        self.writer.add_scalar("LR", lr, epoch)
+                if self.writer:
+                    self.writer.add_scalar(f"Val/{key}", val, epoch)
+        if self.writer:
+            self.writer.add_scalar("LR", lr, epoch)
 
         # MLflow
         mlflow.log_metrics(
@@ -562,7 +570,8 @@ class Trainer:
                 }
             )
 
-        self.writer.close()
+        if self.writer:
+            self.writer.close()
         logger.info(f"\nTraining complete. Best val accuracy: {best_val_acc:.4f}")
         return best_metrics
 
