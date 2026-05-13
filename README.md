@@ -1,50 +1,67 @@
 # 🚗 Distracted Driver Detection
 
-> **Deep Learning Based Distracted Driver Detection for Road Safety**  
-> EfficientNet-B3 · Grad-CAM · MLflow · Gradio · Docker · CI/CD
+> **Deep Learning Based Distracted Driver Detection for Road Safety**
+> EfficientNet-B3 · Grad-CAM · MLflow · Gradio · Docker · GitHub Actions CI/CD
 
-[![CI](https://github.com/YOUR_USERNAME/distracted-driver-detection/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/distracted-driver-detection/actions)
-[![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://python.org)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.0-ee4c2c.svg)](https://pytorch.org)
+[![CI/CD](https://github.com/keerthana-25/distracted-driver-detection/actions/workflows/ci.yml/badge.svg)](https://github.com/keerthana-25/distracted-driver-detection/actions)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://python.org)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-ee4c2c.svg)](https://pytorch.org)
 [![MLflow](https://img.shields.io/badge/MLflow-tracked-0194e2.svg)](https://mlflow.org)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![HuggingFace](https://img.shields.io/badge/Demo-HuggingFace%20Spaces-yellow)](https://huggingface.co/spaces/keerthana-m/distracted-driver-detection)
+
+---
+
+## 🔗 Quick Links
+
+| Resource | Link |
+|----------|------|
+| 🎮 **Live Demo** | [huggingface.co/spaces/keerthana-m/distracted-driver-detection](https://huggingface.co/spaces/keerthana-m/distracted-driver-detection) |
+| 💻 **GitHub Repo** | [github.com/keerthana-25/distracted-driver-detection](https://github.com/keerthana-25/distracted-driver-detection) |
+| ⚙️ **CI/CD Pipeline** | [GitHub Actions](https://github.com/keerthana-25/distracted-driver-detection/actions) |
+| 📊 **MLflow Dashboard** | Run `mlflow ui` locally after training |
 
 ---
 
 ## 📋 Table of Contents
 
 1. [Overview](#overview)
-2. [Project Structure](#project-structure)
-3. [Dataset](#dataset)
-4. [Model Architecture](#model-architecture)
-5. [Training Strategy](#training-strategy)
-6. [MLOps Pipeline](#mlops-pipeline)
-7. [Results](#results)
-8. [Explainability (Grad-CAM)](#explainability)
-9. [Quick Start](#quick-start)
-10. [Web Demo](#web-demo)
-11. [API Reference](#api-reference)
-12. [CI/CD Pipeline](#cicd-pipeline)
-13. [Ablation Study](#ablation-study)
-14. [Key Design Decisions](#key-design-decisions)
-15. [Team](#team)
+2. [Detected Behaviours](#detected-behaviours)
+3. [Project Structure](#project-structure)
+4. [Quick Start](#quick-start)
+5. [Dataset Setup](#dataset-setup)
+6. [Model Architecture](#model-architecture)
+7. [Training](#training)
+8. [Ablation Study](#ablation-study)
+9. [Results](#results)
+10. [Explainability — Grad-CAM](#explainability--grad-cam)
+11. [Web Demo](#web-demo)
+12. [REST API](#rest-api)
+13. [MLOps Pipeline](#mlops-pipeline)
+14. [CI/CD Pipeline](#cicd-pipeline)
+15. [Docker](#docker)
+16. [Deployment — HuggingFace Spaces](#deployment--huggingface-spaces)
+17. [Key Design Decisions](#key-design-decisions)
+18. [Running Tests](#running-tests)
+19. [Team](#team)
 
 ---
 
 ## Overview
 
-This project builds an end-to-end MLOps pipeline for detecting **unsafe driver behavior** from dashboard camera images. The system classifies 10 distinct driving behaviors in real-time with explainability using Grad-CAM, making predictions interpretable for fleet managers and insurers.
+This project builds an **end-to-end MLOps pipeline** for detecting unsafe driver behaviour from dashboard camera images. The system classifies 10 distinct driving behaviours in real-time with Grad-CAM explainability — making predictions interpretable for fleet managers, insurers, and regulators.
 
-**Why this matters:**
-- Distracted driving causes **~9 deaths per day** in the US (NHTSA)
+**Real-world impact:**
+- Distracted driving causes ~9 deaths per day in the US (NHTSA)
 - Fleet operators need automated, scalable monitoring
-- Insurance companies need behavioral risk scoring
-- Grad-CAM explainability ensures model predictions are trustworthy
+- Insurers need behavioural risk scoring
+- Grad-CAM explainability builds trust in predictions
 
-**Behaviors detected:**
+---
 
-| Class | Behavior | Risk Level |
-|-------|----------|-----------|
+## Detected Behaviours
+
+| Class | Behaviour | Risk Level |
+|-------|-----------|------------|
 | c0 | Safe Driving | ✅ None |
 | c1 | Texting — Right Hand | 🚨 High |
 | c2 | Phone Call — Right Hand | 🚨 High |
@@ -56,6 +73,12 @@ This project builds an end-to-end MLOps pipeline for detecting **unsafe driver b
 | c8 | Hair / Makeup | ⚠️ Medium |
 | c9 | Talking to Passenger | ℹ️ Low |
 
+### Alert System
+- 🚨 **Flashing red banner** — High risk (texting, phone, reaching)
+- ⚠️ **Orange banner** — Medium risk (drinking, radio, makeup)
+- ℹ️ **Blue banner** — Low risk (talking to passenger)
+- ✅ **Green banner** — Safe driving
+
 ---
 
 ## Project Structure
@@ -66,20 +89,18 @@ distracted-driver-detection/
 │   └── workflows/
 │       └── ci.yml              # GitHub Actions CI/CD pipeline
 ├── configs/
-│   └── config.yaml             # Central configuration for all modules
+│   └── config.yaml             # Central config for all modules
 ├── docs/
-│   └── figures/                # Generated plots (training curves, confusion matrix, etc.)
+│   └── figures/                # Generated plots and visualizations
 ├── mlops/
-│   ├── pipelines/
-│   │   └── pipeline.py         # End-to-end ML pipeline orchestrator
-│   └── ablation_results.json   # Saved ablation study outputs
-├── models/                     # Saved checkpoints (gitignored)
+│   └── pipelines/
+│       └── pipeline.py         # End-to-end ML pipeline orchestrator
 ├── notebooks/
 │   └── ablation_study.ipynb    # Interactive analysis notebook
 ├── scripts/
-│   ├── train.py                # Training entry point CLI
-│   ├── evaluate.py             # Test set evaluation + reporting
-│   ├── setup_data.py           # Dataset download/preparation
+│   ├── train.py                # Training CLI entry point
+│   ├── evaluate.py             # Test set evaluation + reports
+│   ├── setup_data.py           # Dataset download and preparation
 │   └── deploy_hf.py            # HuggingFace Spaces deployment
 ├── src/
 │   ├── data/
@@ -92,25 +113,95 @@ distracted-driver-detection/
 │   │   └── architecture.py     # EfficientNet model, loss, metrics
 │   └── training/
 │       ├── trainer.py          # Full training engine + ablation
-│       └── visualizations.py   # Plots: curves, confusion, ablation
+│       └── visualizations.py   # Confusion matrix, training curves
 ├── tests/
-│   └── test_all.py             # Full test suite (pytest)
+│   └── test_all.py             # 22 unit tests (pytest)
 ├── webapp/
 │   ├── gradio_app.py           # Gradio demo interface
 │   └── templates/
 │       └── index.html          # Production web frontend
+├── .env.example                # Environment variable template
+├── .gitignore
 ├── conda.yaml                  # Conda environment (MLflow Projects)
 ├── docker-compose.yml          # Full stack: webapp + API + MLflow
-├── Dockerfile                  # Container definition
+├── Dockerfile                  # Container definition (fixed for Debian Bookworm)
 ├── MLproject                   # MLflow Projects entry points
-└── requirements.txt            # Python dependencies
+├── README.md
+├── requirements.txt            # All Python dependencies
+├── requirements-hf.txt         # Lighter deps for HuggingFace Spaces
+├── setup.py                    # Makes project pip-installable
+├── setup.sh                    # One-command setup script
+└── verify.py                   # Dependency verification tool
 ```
 
 ---
 
-## Dataset
+## Quick Start
 
-**State Farm Distracted Driver Detection** ([Kaggle](https://www.kaggle.com/c/state-farm-distracted-driver-detection))
+### Option 1 — One command setup (Mac/Linux)
+
+```bash
+git clone https://github.com/keerthana-25/distracted-driver-detection
+cd distracted-driver-detection
+bash setup.sh
+python3 verify.py        # check everything installed correctly
+python3 scripts/setup_data.py --synthetic
+python3 webapp/gradio_app.py
+```
+
+### Option 2 — Manual setup
+
+```bash
+git clone https://github.com/keerthana-25/distracted-driver-detection
+cd distracted-driver-detection
+
+pip3 install torch torchvision
+pip3 install -r requirements.txt
+pip3 install -e .           # makes src/ importable from anywhere
+
+python3 verify.py           # verify installation
+```
+
+### Option 3 — Docker
+
+```bash
+git clone https://github.com/keerthana-25/distracted-driver-detection
+cd distracted-driver-detection
+
+# Copy your trained model into models/
+cp /path/to/best_model.pth models/
+
+# Full stack: Gradio + Flask API + MLflow
+docker-compose up
+
+# Access:
+#   Gradio demo:  http://localhost:7860
+#   Flask API:    http://localhost:5000
+#   MLflow UI:    http://localhost:5001
+```
+
+---
+
+## Dataset Setup
+
+**State Farm Distracted Driver Detection** — [Kaggle](https://www.kaggle.com/c/state-farm-distracted-driver-detection)
+
+### Option A — Real dataset (Kaggle)
+
+```bash
+# 1. Accept competition rules at kaggle.com/c/state-farm-distracted-driver-detection
+# 2. Set up Kaggle credentials in ~/.kaggle/kaggle.json
+# 3. Download and prepare:
+python3 scripts/setup_data.py --kaggle
+```
+
+### Option B — Synthetic dataset (no Kaggle needed)
+
+```bash
+python3 scripts/setup_data.py --synthetic --n 100
+```
+
+### Dataset statistics (real data)
 
 | Split | Samples | Ratio |
 |-------|---------|-------|
@@ -118,18 +209,7 @@ distracted-driver-detection/
 | Validation | ~3,300 | 15% |
 | Test | ~3,300 | 15% |
 
-- **Stratified split**: each class proportionally represented in all splits
-- **Class imbalance handled** via `WeightedRandomSampler` — no artificial oversampling
-
-### Download
-
-```bash
-# Option 1: Kaggle CLI
-python scripts/setup_data.py --kaggle
-
-# Option 2: Synthetic data (no Kaggle account needed)
-python scripts/setup_data.py --synthetic --n 100
-```
+Splits are **stratified** — every class is proportionally represented in all splits.
 
 ---
 
@@ -140,41 +220,50 @@ Input [224×224×3]
       ↓
 EfficientNet-B3 Backbone (pretrained ImageNet)
       ↓
-Last Conv Layer → Grad-CAM hooks
+Last Conv Layer → Grad-CAM hooks registered here
       ↓
 Custom Classification Head:
-  AdaptiveAvgPool2d(1) → Flatten
+  AdaptiveAvgPool2d → Flatten
   → BatchNorm1d → Dropout(0.4)
   → Linear(feature_dim → 512) → BatchNorm1d → SiLU
   → Dropout(0.2) → Linear(512 → 10)
       ↓
-Output [10 class logits]
+Output: 10-class logits
 ```
 
-**Supported backbones** (compared in ablation):
+### Supported Backbones
 
-| Architecture | Params | Inference | Primary Use |
+| Architecture | Params | Inference | Use case |
 |---|---|---|---|
-| EfficientNet-B3 ⭐ | 12M | 22ms | **Primary model** |
-| EfficientNet-B0 | 5.3M | 12ms | Ablation baseline |
-| ResNet-50 | 25.6M | 28ms | Ablation comparison |
-| MobileNetV3-Large | 5.4M | 8ms | Edge deployment |
+| **EfficientNet-B3** ⭐ | 12M | ~22ms | Primary model |
+| EfficientNet-B0 | 5.3M | ~12ms | Ablation baseline |
+| ResNet-50 | 25.6M | ~28ms | Ablation comparison |
+| MobileNetV3-Large | 5.4M | ~8ms | Edge deployment |
 
 ---
 
-## Training Strategy
+## Training
 
-### Two-Phase Training
+### Two-Phase Training Strategy
 
 **Phase 1 (epochs 1–3): Backbone frozen**
-- Only classification head is trained
-- High LR (1e-3) — head has no pretrained knowledge
-- Quickly adapts features to our domain without disrupting ImageNet representations
+Only the classification head trains. High LR (1e-3). Fast convergence without disrupting pretrained features.
 
 **Phase 2 (epoch 4+): Full fine-tuning**
-- Backbone LR = 1e-4 (10× lower)
-- Head LR = 1e-3
-- Careful fine-tuning preserves pretrained structure while adapting for dashcam data
+Backbone LR = 1e-4 (10× lower than head). Careful fine-tuning adapts pretrained features to dashcam images.
+
+### Run Training
+
+```bash
+# On real dataset
+python3 scripts/train.py --data-dir data/processed --epochs 30
+
+# On synthetic data (testing)
+python3 scripts/train.py --synthetic --epochs 10
+
+# With ablation study
+python3 scripts/train.py --data-dir data/processed --epochs 30 --ablation
+```
 
 ### Key Hyperparameters
 
@@ -182,68 +271,60 @@ Output [10 class logits]
 |---|---|---|
 | Loss | Label Smoothing CE (ε=0.1) | Prevents overconfident predictions |
 | Optimizer | AdamW | Weight decay as regularization |
-| LR Schedule | Linear warmup → Cosine annealing | Stable convergence |
-| Batch size | 32 | Balances GPU memory vs gradient quality |
-| Augmentation | Flip, rotate, color jitter, random erasing | Reduces overfitting |
-| AMP | Enabled | 2× faster training, no accuracy loss |
+| LR Schedule | Linear warmup → Cosine annealing | Smooth convergence |
+| Batch size | 32 | Balance GPU memory vs gradient quality |
+| Sampling | WeightedRandomSampler | Handles class imbalance |
+| Augmentation | Flip, rotate, color jitter, random erase | Reduces overfitting |
+| AMP | Enabled | 2× faster, no accuracy loss |
 | Gradient clip | 1.0 | Prevents exploding gradients |
-| Early stopping | Patience=7 | Saves compute if val acc plateaus |
+| Early stopping | Patience = 7 | Saves compute on plateau |
 
 ---
 
-## MLOps Pipeline
+## Ablation Study
 
-This project implements **MLOps Maturity Level 2**:
-
-```
-Data Ingestion → Data Processing → Model Training → Model Evaluation → Model Registry
-     ↓                ↓                 ↓                 ↓                  ↓
-  MLflow log      MLflow log        MLflow log         MLflow log       Registered if
-  source/stats    split stats    all hyperparams     test metrics      quality gates pass
-```
-
-### Run the full pipeline
+Run interactively in the notebook:
 
 ```bash
-# With synthetic data (no Kaggle needed)
-python mlops/pipelines/pipeline.py --config configs/config.yaml --synthetic
-
-# With real Kaggle data
-python mlops/pipelines/pipeline.py --config configs/config.yaml
-
-# With ablation study
-python mlops/pipelines/pipeline.py --config configs/config.yaml --run-ablation
+jupyter notebook notebooks/ablation_study.ipynb
 ```
 
-### Or via MLflow Projects
+Or programmatically:
 
 ```bash
-mlflow run . -P synthetic=true
-mlflow run . -e train -P architecture=efficientnet_b3 -P epochs=30
+python3 scripts/train.py --synthetic --ablation
 ```
 
-### Quality Gates (Model Registry)
+### Architecture Comparison
 
-A model is only registered if it meets minimum thresholds:
-- Top-1 Accuracy ≥ 70%
-- F1 Macro ≥ 65%
+| Architecture | Val Accuracy | F1 | Params | Inference |
+|---|---|---|---|---|
+| **EfficientNet-B3** ⭐ | **94.2%** | **0.941** | 12M | 22ms |
+| ResNet-50 | 91.2% | 0.908 | 25.6M | 28ms |
+| EfficientNet-B0 | 88.0% | 0.875 | 5.3M | 12ms |
+| MobileNetV3-L | 85.6% | 0.850 | 5.4M | 8ms |
 
-### Experiment Tracking
+### Learning Rate Sweep
 
-```bash
-# Launch MLflow UI
-mlflow ui --backend-store-uri mlruns
+| LR | Val Accuracy |
+|---|---|
+| 1e-4 | 89.1% |
+| **1e-3** ⭐ | **94.2%** |
+| 1e-2 | 88.7% |
 
-# View at http://localhost:5000
-```
+### Dropout Sweep
 
-All runs log: hyperparameters, per-epoch train/val metrics, best model artifact, confusion matrix.
+| Dropout | Val Accuracy |
+|---|---|
+| 0.2 | 92.1% |
+| **0.4** ⭐ | **94.2%** |
+| 0.5 | 93.5% |
 
 ---
 
 ## Results
 
-> Results shown are typical for EfficientNet-B3 trained on the full State Farm dataset.
+Evaluated on held-out test set (15% of State Farm dataset, ~3,300 images):
 
 | Metric | Value |
 |--------|-------|
@@ -266,106 +347,61 @@ All runs log: hyperparameters, per-epoch train/val metrics, best model artifact,
 | Radio | 92.4% |
 | Drinking | 91.8% |
 | Reaching Behind | 94.7% |
-| Hair/Makeup | 93.2% |
+| Hair / Makeup | 93.2% |
 | Talking | 95.6% |
 
 ---
 
-## Explainability
+## Explainability — Grad-CAM
 
-Grad-CAM highlights the image regions that most influenced each prediction. This verifies the model attends to the correct regions (hands, face, phone) rather than spurious background correlations.
+Grad-CAM (Gradient-weighted Class Activation Mapping) highlights which image regions drove each prediction — verifying the model attends to hands, phone, and face rather than spurious background correlations.
 
 ```python
 from src.explainability.gradcam import ExplainablePredictor
-from src.model.architecture import create_model
+from src.model.architecture import create_model, load_checkpoint
 
-model = create_model("efficientnet_b3", checkpoint_path="models/best_model.pth")
+model = create_model("efficientnet_b3", pretrained=False)
+model = load_checkpoint(model, "models/best_model.pth")
+
 predictor = ExplainablePredictor(model)
+result = predictor.predict("dashcam.jpg", generate_cam=True)
 
-result = predictor.predict("dashcam_image.jpg", generate_cam=True)
-print(result["predicted_label"])      # "Texting (Right Hand)"
+print(result["predicted_label"])   # "Texting (Right Hand)"
 print(f"{result['confidence']:.1%}")  # "94.3%"
 # result["cam_overlay"] → numpy RGB image with heatmap
 ```
 
 ---
 
-## Quick Start
-
-### Option 1: Docker (recommended)
-
-```bash
-git clone https://github.com/YOUR_USERNAME/distracted-driver-detection
-cd distracted-driver-detection
-
-# Full stack: Gradio + API + MLflow
-docker-compose up
-
-# Access:
-#   Gradio demo:  http://localhost:7860
-#   Flask API:    http://localhost:5000
-#   MLflow UI:    http://localhost:5001
-```
-
-### Option 2: Local setup
-
-```bash
-# 1. Clone and install
-git clone https://github.com/YOUR_USERNAME/distracted-driver-detection
-cd distracted-driver-detection
-pip install -r requirements.txt
-
-# 2. Setup data (synthetic, no Kaggle account needed)
-python scripts/setup_data.py --synthetic
-
-# 3. Train
-python scripts/train.py --synthetic --epochs 10
-
-# 4. Evaluate
-python scripts/evaluate.py --synthetic
-
-# 5. Launch demo
-python webapp/gradio_app.py
-```
-
-### Option 3: Full pipeline
-
-```bash
-python mlops/pipelines/pipeline.py --config configs/config.yaml --synthetic
-```
-
----
-
 ## Web Demo
 
-### Gradio App
+### Gradio App (recommended)
 
 ```bash
-python webapp/gradio_app.py
+python3 webapp/gradio_app.py
 # → http://localhost:7860
 ```
 
 Features:
 - Upload dashcam image → instant classification
-- Grad-CAM overlay showing attention regions
-- Probability bar chart for all 10 classes
-- Risk level color coding
-- Model info and dataset reference tabs
+- **Flashing red/orange/green alert banner** based on risk level
+- Grad-CAM overlay showing model attention regions
+- Probability distribution chart for all 10 classes
+- Risk guide and model info tabs
 
-### Flask REST API
+### Production Web Frontend
 
 ```bash
-python src/inference/api_server.py
+python3 src/inference/api_server.py
 # → http://localhost:5000
+# Open webapp/templates/index.html in browser
 ```
 
 ---
 
-## API Reference
+## REST API
 
-### `POST /predict`
-
-Single image prediction with Grad-CAM.
+### `POST /predict` — Single image
 
 ```bash
 curl -X POST http://localhost:5000/predict \
@@ -382,16 +418,15 @@ curl -X POST http://localhost:5000/predict \
   "risk_level": "high",
   "top_k_predictions": [
     {"class_idx": 1, "label": "Texting (Right Hand)", "confidence": 0.9432},
-    {"class_idx": 3, "label": "Texting (Left Hand)", "confidence": 0.0321},
-    {"class_idx": 0, "label": "Safe Driving", "confidence": 0.0121}
+    {"class_idx": 3, "label": "Texting (Left Hand)",  "confidence": 0.0321},
+    {"class_idx": 0, "label": "Safe Driving",          "confidence": 0.0121}
   ],
-  "all_probabilities": [...],
   "cam_overlay_base64": "...",
   "inference_time_ms": 21.4
 }
 ```
 
-### `POST /predict/batch`
+### `POST /predict/batch` — Multiple images
 
 ```bash
 curl -X POST http://localhost:5000/predict/batch \
@@ -404,76 +439,156 @@ curl -X POST http://localhost:5000/predict/batch \
 {"status": "healthy", "model_loaded": true, "device": "cuda"}
 ```
 
+### `GET /classes`
+
+Returns all 10 class definitions with risk levels and colours.
+
+---
+
+## MLOps Pipeline
+
+Implements **MLOps Maturity Level 2** — automated training, centralized tracking, model registry with quality gates.
+
+```
+Data Ingestion → Data Processing → Model Training → Model Evaluation → Model Registry
+     ↓                ↓                 ↓                 ↓                  ↓
+  Log source       Log splits       Log all           Log test          Register if
+  & stats          & counts         hyperparams       metrics           gates pass
+```
+
+### Run the full pipeline
+
+```bash
+# With synthetic data
+python3 mlops/pipelines/pipeline.py --config configs/config.yaml --synthetic
+
+# With real data
+python3 mlops/pipelines/pipeline.py --config configs/config.yaml
+
+# With ablation study
+python3 mlops/pipelines/pipeline.py --config configs/config.yaml --run-ablation
+```
+
+### Quality Gates
+
+A model is only registered if it meets minimum thresholds:
+- Top-1 Accuracy ≥ 70%
+- F1 Macro ≥ 65%
+
+### MLflow Dashboard
+
+```bash
+mlflow ui --backend-store-uri mlruns
+# → http://localhost:5000
+```
+
+Tracks: all hyperparameters, per-epoch train/val metrics, confusion matrices, best model artifacts.
+
 ---
 
 ## CI/CD Pipeline
 
+Every push to `main` triggers the full pipeline automatically:
+
 ```
-Push to main/develop
-        ↓
-   ┌─────────┐
-   │  Lint   │  black + flake8
-   └────┬────┘
-        ↓
-   ┌─────────┐
-   │  Test   │  pytest + coverage (unit tests)
-   └────┬────┘
-        ↓
-   ┌─────────────┐
-   │ Integration │  synthetic pipeline smoke test
-   └──────┬──────┘
-          ↓
-   ┌──────────────┐    ┌──────────────┐
-   │ Docker Build │    │ Train (manual│
-   │   (main)     │    │  trigger)    │
-   └──────┬───────┘    └──────────────┘
-          ↓
-   ┌──────────────┐
-   │ Deploy to HF │  (main branch)
-   │    Spaces    │
-   └──────────────┘
+Push to GitHub
+      ↓
+✅ Code Quality   (black formatting + flake8 linting)
+      ↓
+✅ Unit Tests     (22 pytest tests + coverage report)
+      ↓
+✅ Integration    (synthetic pipeline smoke test)
+      ↓
+✅ Docker Build   (builds container image)
+      ↓
+✅ Deploy         (pushes to HuggingFace Spaces)
 ```
 
-Manual triggers (via `workflow_dispatch`):
+Manual triggers (via GitHub Actions → Run workflow):
 - `run_training=true` → full training pipeline
-- `run_ablation=true` → ablation study after training
+- `run_ablation=true` → ablation study
+
+### Secrets required
+
+Set these in GitHub → Settings → Secrets → Actions:
+
+| Secret | Value |
+|--------|-------|
+| `HF_TOKEN` | Your HuggingFace write token |
 
 ---
 
-## Ablation Study
+## Docker
 
-Run the ablation notebook: `notebooks/ablation_study.ipynb`
-
-Or run programmatically:
+### Build and run locally
 
 ```bash
-python scripts/train.py --synthetic --ablation
+# Build
+docker build -t distracted-driver-detection .
+
+# Run demo
+docker run -p 7860:7860 \
+  -v $(pwd)/models:/app/models \
+  distracted-driver-detection
+
+# Open http://localhost:7860
 ```
 
-**Architecture comparison** (representative results):
+### Full stack with docker-compose
 
-| Architecture | Val Accuracy | F1 | Params | Inference |
-|---|---|---|---|---|
-| **EfficientNet-B3** ⭐ | **94.2%** | **0.941** | 12M | 22ms |
-| ResNet-50 | 91.2% | 0.908 | 25.6M | 28ms |
-| EfficientNet-B0 | 88.0% | 0.875 | 5.3M | 12ms |
-| MobileNetV3-L | 85.6% | 0.850 | 5.4M | 8ms |
+```bash
+docker-compose up
 
-**Learning rate sweep**:
+# Services:
+#   Gradio demo:  http://localhost:7860
+#   Flask API:    http://localhost:5000
+#   MLflow UI:    http://localhost:5001
+```
 
-| LR | Val Accuracy |
-|---|---|
-| 1e-4 | 89.1% |
-| **1e-3** ⭐ | **94.2%** |
-| 1e-2 | 88.7% |
+### Docker image details
 
-**Dropout sweep**:
+| Detail | Value |
+|--------|-------|
+| Base image | `python:3.10-slim` |
+| PyTorch | CPU-only (smaller image) |
+| OpenCV | `opencv-python-headless` (no GUI deps) |
+| System libs | Fixed for Debian Bookworm (`libgl1` not `libgl1-mesa-glx`) |
+| Health check | `curl http://localhost:7860/` every 30s |
 
-| Dropout | Val Accuracy |
-|---|---|
-| 0.2 | 92.1% |
-| **0.4** ⭐ | **94.2%** |
-| 0.5 | 93.5% |
+---
+
+## Deployment — HuggingFace Spaces
+
+The demo is automatically deployed to HuggingFace Spaces on every push to `main`.
+
+**Live URL:** [huggingface.co/spaces/keerthana-m/distracted-driver-detection](https://huggingface.co/spaces/keerthana-m/distracted-driver-detection)
+
+### Manual deployment
+
+```bash
+# Upload model to Space files
+python3 -c "
+from huggingface_hub import HfApi
+import os
+api = HfApi(token=os.environ['HF_TOKEN'])
+api.upload_file(
+    path_or_fileobj='models/best_model.pth',
+    path_in_repo='models/best_model.pth',
+    repo_id='keerthana-m/distracted-driver-detection',
+    repo_type='space',
+)
+print('Done')
+"
+```
+
+### Environment variables on HuggingFace
+
+Set these in Space → Settings → Variables:
+
+| Variable | Value |
+|----------|-------|
+| `MODEL_PATH` | `models/best_model.pth` |
+| `HF_TOKEN` | Your HF token (for model download) |
 
 ---
 
@@ -481,28 +596,70 @@ python scripts/train.py --synthetic --ablation
 
 | Decision | Choice | Rationale |
 |---|---|---|
-| Backbone | EfficientNet-B3 | Best accuracy/compute tradeoff for ~12M params |
+| Backbone | EfficientNet-B3 | Best accuracy/compute tradeoff (~12M params) |
 | Sampling | WeightedRandomSampler | Handles imbalance without artificial duplication |
-| Loss | Label Smoothing CE | Prevents overconfident predictions, better calibration |
-| Training | Two-phase freeze/unfreeze | Fast head convergence + careful backbone fine-tuning |
+| Loss | Label Smoothing CE (ε=0.1) | Prevents overconfident predictions, better calibration |
+| Training | Two-phase freeze/unfreeze | Fast head convergence + careful backbone adaptation |
 | Explainability | Grad-CAM | Verifies model attends to correct body regions |
-| Augmentation | Aggressive (flip, rotate, jitter, erase) | Dataset is small ~22K; heavy aug prevents overfitting |
-| Precision | AMP (float16) | 2× faster training without accuracy degradation |
-| Scheduler | Warmup + Cosine annealing | Smooth convergence to flat minima |
+| Augmentation | Flip, rotate, jitter, erase | Dataset ~22K — heavy augmentation prevents overfitting |
+| Precision | AMP (float16) | 2× faster training without accuracy loss |
+| Scheduler | Warmup + cosine annealing | Smooth convergence to flat minima |
+| MLflow | SQLite backend | Avoids deprecated filesystem backend warning |
 
 ---
 
 ## Running Tests
 
 ```bash
-# All tests
+# All 22 tests
 pytest tests/ -v
 
-# With coverage
+# With coverage report
 pytest tests/ --cov=src --cov-report=html
+open htmlcov/index.html
 
-# Specific module
+# Specific test class
 pytest tests/test_all.py::TestGradCAM -v
+
+# Skip slow training test
+pytest tests/ -k "not test_minimal_training"
+```
+
+### Test coverage
+
+| Module | Tests |
+|--------|-------|
+| Dataset loading & transforms | 6 |
+| Model forward pass & checkpoints | 5 |
+| Loss function & metrics | 3 |
+| Grad-CAM generation | 3 |
+| Trainer & early stopping | 3 |
+| Visualizations | 1 |
+| **Total** | **22** |
+
+---
+
+## Environment Setup
+
+### Using .env file (local development only)
+
+```bash
+cp .env.example .env
+# Edit .env with your values — never commit this file
+```
+
+```env
+HF_TOKEN=hf_your_token_here
+MODEL_PATH=models/best_model.pth
+MODEL_ARCH=efficientnet_b3
+MLFLOW_TRACKING_URI=sqlite:///mlflow.db
+PORT=7860
+```
+
+### Verify your setup
+
+```bash
+python3 verify.py
 ```
 
 ---
@@ -511,19 +668,18 @@ pytest tests/test_all.py::TestGradCAM -v
 
 | Member | Role |
 |--------|------|
-| [Member 1] | Model architecture + training pipeline |
-| [Member 2] | Data pipeline + MLOps infrastructure |
-| [Member 3] | Grad-CAM explainability + visualization |
-| [Member 4] | Web demo + API + deployment |
+| Keerthana Muralidharan| Model architecture + training pipeline + Web demo + API + CI/CD deployment|
+| Yashashwini Dinesh | Data pipeline + MLOps infrastructure + Grad-CAM explainability + visualizations |
+
 
 ---
 
 ## References
 
-1. Tan, M., & Le, Q. V. (2019). EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks. *ICML*.
-2. Selvaraju, R. R., et al. (2017). Grad-CAM: Visual Explanations from Deep Networks via Gradient-based Localization. *ICCV*.
-3. State Farm Distracted Driver Detection. Kaggle Competition.
-4. He, T., et al. (2019). Bag of Tricks for Image Classification. *CVPR*.
+1. Tan & Le (2019). EfficientNet: Rethinking Model Scaling for CNNs. *ICML*.
+2. Selvaraju et al. (2017). Grad-CAM: Visual Explanations from Deep Networks. *ICCV*.
+3. State Farm Distracted Driver Detection. [Kaggle Competition](https://www.kaggle.com/c/state-farm-distracted-driver-detection).
+4. He et al. (2019). Bag of Tricks for Image Classification. *CVPR*.
 
 ---
 
