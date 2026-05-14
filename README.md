@@ -12,6 +12,25 @@
 
 ---
 
+## 👥 Team
+
+| Name |
+|------|
+| Keerthana Murlidharan |
+| Yashaswini Dinesh |
+
+---
+
+## 📎 Project Resources
+
+| Resource | Link |
+|----------|------|
+| 🎥 **Video Demo** | [Watch on Google Drive](https://drive.google.com/file/d/1J0-W579fdl9yAARf9jnv9tvT-KsgTQ3Z/view?usp=share_link) |
+| 📊 **Presentation (PPT)** | [View on Google Slides](https://docs.google.com/presentation/d/1UD2BdvlxGdKiH0L1nyScItnBznis1pyW/edit?usp=share_link&ouid=107950069020013929648&rtpof=true&sd=true) |
+| 📄 **Project Report** | [View on Google Docs](https://docs.google.com/document/d/1DboCWQvjqpkwSVH8g_GRg2BiQbbBVURW/edit?usp=share_link&ouid=107950069020013929648&rtpof=true&sd=true) |
+
+---
+
 ## 🔗 Quick Links
 
 | Resource | Link |
